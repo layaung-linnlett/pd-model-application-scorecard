@@ -30,12 +30,21 @@ user explicitly says "continue".
 - `.venv` on Python 3.11.
 
 ### Stage 1 — Data source & target definition — IN PROGRESS
-Open questions put to the user on 2026-09-05:
-1. Where does the Lending Club file come from / where will it live?
-2. How is `default_within_12_months` actually constructed, given that the accepted-loans
-   file records only a single snapshot `loan_status`, not a month-by-month payment history?
 
-Not yet decided. Nothing downstream may start.
+**Settled 2026-09-05:**
+- Target construction = **Option B** (reconstruct the 12-month window from `last_pymnt_d`):
+  `default_within_12_months = 1` if terminal status is `Charged Off`/`Default` AND
+  `issue_d` -> `last_pymnt_d` gap <= 9 months (assumed 3-month lag from last payment to
+  90 DPD); borrowers who never paid -> 1; `Current`/`Fully Paid`/merely `Late` -> 0.
+  The 9-month cutoff is an explicit assumption and must be sensitivity-tested at 9 vs 12
+  months, with the base-rate movement reported in the README.
+- File will be downloaded by the user into `data/raw/`.
+
+**Still open 2026-09-05:** which Kaggle dataset to download.
+Claude recommends `wordsforthewise/lending-club` (2007-2018Q4) over the classic
+`wendykan/lending-club-loan-data` (2007-2015), because the 2015-cutoff snapshot
+right-censors the 2015-2016 cohort and would systematically mislabel Option B defaults
+as non-defaults. Awaiting user decision. Nothing downstream may start.
 
 ---
 
@@ -45,6 +54,7 @@ Not yet decided. Nothing downstream may start.
 |------|----------|
 | 2026-09-05 | Project framing, target concept, and session discipline as stated by user |
 | 2026-09-05 | Repo scaffold and tooling conventions |
+| 2026-09-05 | Target definition: **Option B**, reconstructed 12-month window via `last_pymnt_d`, 9-month cutoff, sensitivity test required |
 
 ## Pending (not started)
 
