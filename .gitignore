@@ -1,0 +1,23 @@
+# Environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Data — never commit Lending Club files (size + redistribution terms)
+data/raw/*
+data/interim/*
+data/processed/*
+!data/**/.gitkeep
+!data/**/README.md
+
+# Outputs
+outputs/models/*.joblib
+outputs/figures/*.png
+!outputs/**/.gitkeep
+
+# OS / editor
+.DS_Store
+.vscode/
+.pytest_cache/
+.ipynb_checkpoints/
