@@ -14,9 +14,9 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 1 — Data source & target definition.** Data source DONE and verified.
-Target rule agreed (Option B) but **not yet implemented in code**.
-Next: Stage 2 leakage checklist — awaiting user "continue".
+**Stage 2 — Leakage checklist. COMPLETE 2026-09-06.**
+Next: Stage 3 — build the modelling dataset (filter cohort, construct the Option B
+label, apply the column policy). Awaiting user "continue".
 
 ---
 
@@ -67,14 +67,37 @@ right-censoring in this cohort.
 | 2026-09-05 | Repo scaffold and tooling conventions |
 | 2026-09-05 | Target definition: **Option B**, reconstructed 12-month window via `last_pymnt_d`, 9-month cutoff, sensitivity test required |
 | 2026-09-06 | Dataset: `accepted_2007_to_2018Q4.csv`; 2015-2016 cohort of 855,502 loans; Apr 2019 snapshot verified sufficient |
+| 2026-09-06 | Drop `int_rate`, `grade`, `sub_grade` (Lending Club's own risk assessment) — and `installment`, which is a function of `int_rate` |
+| 2026-09-06 | Drop `zip_code` and `addr_state` on Equality Act 2010 fair-lending grounds |
+| 2026-09-06 | Column policy final: 78 features / 3 label-building / 70 dropped. See `docs/leakage_checklist.md` |
 
 ## Pending (not started)
 
 - [x] Stage 1 — Data source confirmed and verified; target definition agreed (implementation pending)
-- [ ] Stage 2 — Leakage checklist (application-time vs post-origination columns)  **GATE**
-- [ ] Stage 3 — Stratified train/validation/test split  **GATE**
-- [ ] Stage 4 — Logistic regression baseline + coefficient walkthrough  **GATE**
-- [ ] Stage 5 — Evaluation: confusion matrix, precision, recall, ROC-AUC, KS, Gini  **GATE**
-- [ ] Stage 6 — Later models (only after baseline approved; `class_weight='balanced'` before SMOTE)  **GATE**
-- [ ] Stage 7 — README: business framing, leakage checklist, missing-data policy,
+- [x] Stage 2 — Leakage checklist — COMPLETE 2026-09-06
+- [ ] Stage 3 — Build modelling dataset: cohort filter + Option B label + column policy  **GATE**
+- [ ] Stage 4 — Stratified train/validation/test split  **GATE**
+- [ ] Stage 5 — Logistic regression baseline + coefficient walkthrough  **GATE**
+      NOTE: 78 features is too many to walk through one at a time. Agree a smaller
+      core set with the user before the walkthrough.
+- [ ] Stage 6 — Evaluation: confusion matrix, precision, recall, ROC-AUC, KS, Gini  **GATE**
+- [ ] Stage 7 — Later models (only after baseline approved; `class_weight='balanced'` before SMOTE)  **GATE**
+- [ ] Stage 8 — README: business framing, leakage checklist, missing-data policy,
       Responsible-use and limitations (FCA CONC 5.2A, UK GDPR Art. 22, Equality Act 2010)
+
+
+---
+
+### Stage 2 — Leakage checklist — COMPLETE 2026-09-06
+
+All 151 columns classified, none unallocated (verified programmatically against the
+file header). Policy lives in `src/config.py`; reasoning in `docs/leakage_checklist.md`.
+
+Teaching points the user worked through and should be able to defend in an interview:
+- `last_fico_range_*` leaks (post-origination pulls) while `fico_range_*` is safe —
+  the prefix, not the concept, decides it.
+- `chargeoff_within_12_mths` sounds like the target but is bureau data about the
+  borrower's *other* accounts at application time. Safe.
+- Dropping `int_rate` is insufficient on its own: `installment` is derived from it and
+  would reintroduce it. Drop functions of a dropped column too.
+- `zip_code`/`addr_state` are a *fairness* exclusion, not a leakage one.
