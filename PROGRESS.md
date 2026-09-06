@@ -14,9 +14,9 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 3 + 3b — Modelling dataset built, lag assumption measured and corrected.
-COMPLETE 2026-09-06.**
-Next: Stage 4 — stratified train/validation/test split. Awaiting user "continue".
+**Stage 4 — Stratified split. COMPLETE 2026-09-07.**
+Next: Stage 5 — missing-data policy (a stated README deliverable), then the logistic
+regression baseline. Awaiting user "continue".
 
 ---
 
@@ -72,19 +72,21 @@ right-censoring in this cohort.
 | 2026-09-06 | Column policy final: 78 features / 3 label-building / 70 dropped. See `docs/leakage_checklist.md` |
 | 2026-09-06 | Stay with Option B (12-month window), not Option A (lifetime) — confirmed after review |
 | 2026-09-06 | Lag measured, not assumed: cutoff corrected 9 -> **8**. Default rate **3.70%**, imbalance **26.0:1** |
+| 2026-09-07 | Split 60/20/20 stratified, `random_state=42`. Split done BEFORE any cleaning, to prevent preprocessing leakage |
 
 ## Pending (not started)
 
 - [x] Stage 1 — Data source confirmed and verified; target definition agreed (implementation pending)
 - [x] Stage 2 — Leakage checklist — COMPLETE 2026-09-06
 - [x] Stage 3 — Build modelling dataset — COMPLETE 2026-09-06
-- [ ] Stage 4 — Stratified train/validation/test split  **GATE**
-- [ ] Stage 5 — Logistic regression baseline + coefficient walkthrough  **GATE**
+- [x] Stage 4 — Stratified train/validation/test split — COMPLETE 2026-09-07
+- [ ] Stage 5 — Missing-data policy: inspect missingness, agree treatment  **GATE**
+- [ ] Stage 6 — Logistic regression baseline + coefficient walkthrough  **GATE**
       NOTE: 78 features is too many to walk through one at a time. Agree a smaller
       core set with the user before the walkthrough.
-- [ ] Stage 6 — Evaluation: confusion matrix, precision, recall, ROC-AUC, KS, Gini  **GATE**
-- [ ] Stage 7 — Later models (only after baseline approved; `class_weight='balanced'` before SMOTE)  **GATE**
-- [ ] Stage 8 — README: business framing, leakage checklist, missing-data policy,
+- [ ] Stage 7 — Evaluation: confusion matrix, precision, recall, ROC-AUC, KS, Gini  **GATE**
+- [ ] Stage 8 — Later models (only after baseline approved; `class_weight='balanced'` before SMOTE)  **GATE**
+- [ ] Stage 9 — README: business framing, leakage checklist, missing-data policy,
       Responsible-use and limitations (FCA CONC 5.2A, UK GDPR Art. 22, Equality Act 2010)
 
 
@@ -163,3 +165,35 @@ disclosed in "Responsible-use and limitations".
 - User predicted 20% for the default rate, which is close to the *lifetime* rate
   (16.84%) rather than the 12-month rate. Good teaching moment: the Option A vs
   Option B distinction showing up in the data.
+
+
+---
+
+### Stage 4 — Stratified split — COMPLETE 2026-09-07
+
+`src/03_split.py` -> `data/interim/{train,val,test}.parquet`
+
+| Pile | Rows | Share | Defaults | Rate |
+|---|---|---|---|---|
+| train | 513,300 | 60.0% | 18,977 | 3.6971% |
+| val | 171,101 | 20.0% | 6,326 | 3.6972% |
+| test | 171,101 | 20.0% | 6,326 | 3.6972% |
+
+Rate spread across piles: 0.0002 pp. Every row lands in exactly one pile
+(asserted in the script, not just assumed).
+
+**Design decisions:**
+- Split performed BEFORE any imputation or encoding. Filling missing values using
+  statistics from the whole dataset would leak test information into train.
+- `random_state=42` so the split is reproducible.
+- The test pile is sealed. Do not evaluate on it until the model is final.
+
+**Teaching point the user worked through:** they predicted the test-pile rate would be
+3.70/3, confusing *count* with *rate*. The split divides defaulters AND non-defaulters
+together, so the count falls but the proportion holds. The output demonstrates this
+directly: counts 18,977 / 6,326 / 6,326 against identical rates.
+
+**Noted for later (not yet done):** a real credit team would usually ALSO check an
+out-of-time split - train on 2015, test on 2016 - to see whether the model survives
+into a later period. The user specified a random stratified split, which is what is
+implemented. Worth offering as an extension before the README stage.
