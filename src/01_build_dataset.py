@@ -11,18 +11,22 @@ The file records one snapshot status per loan (as at Apr 2019), not a month-by-m
 payment history, so "reached 90+ days past due within 12 months" is not directly
 observable. We reconstruct it:
 
-    a borrower who stops paying reaches 90 DPD roughly 3 months later,
-    so a last payment within 9 months implies 90 DPD by month 12.
+    a borrower who stops paying reaches 90 DPD after some lag,
+    so a last payment within (12 - lag) months implies 90 DPD by month 12.
 
     default_within_12_months = 1  if the loan ended in Charged Off / Default
-                                  AND months(issue_d -> last_pymnt_d) <= 9
+                                  AND months(issue_d -> last_pymnt_d) <= CUTOFF
                                   (a missing last_pymnt_d means they never paid
                                    at all, which also counts as 1)
                              = 0  otherwise
 
-The 9-month cutoff encodes an assumed 3-month lag. That assumption is not measured,
-so this script also reports the default rate under a 12-month cutoff as a sensitivity
-check. Both numbers belong in the README.
+The lag was originally guessed at 3 months (cutoff 9). `src/02_measure_lag.py`
+measured it against loans that were delinquent at the snapshot and found the
+90-day point sits at roughly 4 months since last payment, so the cutoff is 8.
+
+Cutoffs 9 and 12 are still reported as a sensitivity check, since the measurement
+brackets the lag at roughly 3-4 months rather than pinning it exactly. All three
+numbers belong in the README.
 """
 
 from pathlib import Path
@@ -38,8 +42,8 @@ RAW = ROOT / "data" / "raw" / "accepted_2007_to_2018Q4.csv"
 OUT = ROOT / "data" / "interim" / "cohort_2015_2016.parquet"
 
 DEAD_STATUSES = {"Charged Off", "Default"}
-CUTOFF_MONTHS = 9          # the agreed Option B cutoff
-SENSITIVITY_MONTHS = 12    # reported alongside, not used for the label
+CUTOFF_MONTHS = 8            # 12 - 4, using the measured lag (see 02_measure_lag.py)
+SENSITIVITY_CUTOFFS = [9, 12]   # reported alongside; not used for the label
 
 READ_COLS = cfg.LABEL_SOURCE + cfg.FEATURES
 
@@ -78,7 +82,6 @@ def main() -> None:
         return (died & within).astype("int8")
 
     df["default_within_12_months"] = label_at(CUTOFF_MONTHS)
-    sensitivity = label_at(SENSITIVITY_MONTHS)
 
     # --- Report ------------------------------------------------------------
     print("loan_status in cohort:")
@@ -89,7 +92,6 @@ def main() -> None:
     n = len(df)
     n_died = int(died.sum())
     n_default = int(df["default_within_12_months"].sum())
-    n_sens = int(sensitivity.sum())
 
     print(f"\nLoans in cohort:                 {n:,}")
     print(f"Ever charged off / defaulted:    {n_died:,}  ({n_died / n:.2%})")
@@ -97,11 +99,18 @@ def main() -> None:
     print(f"  ...later than 12 months:       {n_died - n_default:,}")
     print(f"Borrowers who never paid at all: {int((never_paid & died).sum()):,}")
 
-    print(f"\n>>> DEFAULT RATE (cutoff {CUTOFF_MONTHS} months): {n_default / n:.2%}")
-    print(f"    sensitivity  (cutoff {SENSITIVITY_MONTHS} months): {n_sens / n:.2%}"
-          f"   (moves by {abs(n_sens - n_default) / n * 100:.2f} pp)")
+    print(f"\n>>> DEFAULT RATE (cutoff {CUTOFF_MONTHS} months, measured lag): "
+          f"{n_default / n:.2%}   [{n_default:,} defaults]")
     print(f"    class balance: {n - n_default:,} non-default vs {n_default:,} default"
           f"  ({(n - n_default) / max(n_default, 1):.1f} : 1)")
+
+    print("\n    Sensitivity to the lag assumption:")
+    print(f"    {'cutoff':>8}{'implied lag':>13}{'defaults':>11}{'rate':>9}{'vs chosen':>11}")
+    for c in [CUTOFF_MONTHS] + SENSITIVITY_CUTOFFS:
+        k = int(label_at(c).sum())
+        tag = "  <-- chosen" if c == CUTOFF_MONTHS else ""
+        delta = "" if c == CUTOFF_MONTHS else f"{(k - n_default) / n * 100:+.2f} pp"
+        print(f"    {c:>8}{12 - c:>13}{k:>11,}{k / n:>9.2%}{delta:>11}{tag}")
 
     # --- Save --------------------------------------------------------------
     out_cols = cfg.FEATURES + ["default_within_12_months"]

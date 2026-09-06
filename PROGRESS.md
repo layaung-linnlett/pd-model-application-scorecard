@@ -14,7 +14,8 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 3 — Modelling dataset built. COMPLETE 2026-09-06.**
+**Stage 3 + 3b — Modelling dataset built, lag assumption measured and corrected.
+COMPLETE 2026-09-06.**
 Next: Stage 4 — stratified train/validation/test split. Awaiting user "continue".
 
 ---
@@ -69,7 +70,8 @@ right-censoring in this cohort.
 | 2026-09-06 | Drop `int_rate`, `grade`, `sub_grade` (Lending Club's own risk assessment) — and `installment`, which is a function of `int_rate` |
 | 2026-09-06 | Drop `zip_code` and `addr_state` on Equality Act 2010 fair-lending grounds |
 | 2026-09-06 | Column policy final: 78 features / 3 label-building / 70 dropped. See `docs/leakage_checklist.md` |
-| 2026-09-06 | Dataset built: 855,502 rows x 79 cols. Default rate **4.38%**, imbalance **21.9:1** |
+| 2026-09-06 | Stay with Option B (12-month window), not Option A (lifetime) — confirmed after review |
+| 2026-09-06 | Lag measured, not assumed: cutoff corrected 9 -> **8**. Default rate **3.70%**, imbalance **26.0:1** |
 
 ## Pending (not started)
 
@@ -110,29 +112,54 @@ Teaching points the user worked through and should be able to defend in an inter
 `src/01_build_dataset.py` -> `data/interim/cohort_2015_2016.parquet`
 (855,502 rows x 78 features + target, 60 MB, gitignored).
 
-**Headline numbers:**
+**Headline numbers (FINAL, cutoff 8):**
 
 | Measure | Value |
 |---|---|
 | Cohort size | 855,502 |
-| Default within 12 months (the target) | **4.38%** (37,430) |
+| Default within 12 months (the target) | **3.70%** (31,629) |
 | Ever charged off / defaulted (lifetime) | 16.84% (144,056) |
-| Share of all defaults occurring after month 12 | 74% |
-| Class balance | 21.9 : 1 |
+| Share of all defaults occurring after month 12 | 78% |
+| Class balance | 26.0 : 1 |
 | Never made any payment | 811 |
 
-**Sensitivity check on the Option B lag assumption — MATERIAL, must appear in README:**
-- 9-month cutoff (the agreed rule): 4.38%
-- 12-month cutoff: 6.51%
-- Moves 2.13 pp, i.e. roughly **50% more defaults** in relative terms. The headline
-  rate genuinely depends on an unverifiable assumption. State this plainly in
-  "Responsible-use and limitations"; do not bury it.
+### Stage 3b — the lag was MEASURED, not assumed
+
+`src/02_measure_lag.py` tested the assumed 3-month lag against loans that were
+delinquent at the Apr 2019 snapshot. Months since last payment, by status:
+
+| Status | median months since last payment |
+|---|---|
+| Current (paying normally) | 1 |
+| In Grace Period | 1 |
+| Late (16-30 days) | 2 |
+| Late (31-120 days) | 3 (p75 = 4) |
+
+A clean ladder: each additional missed monthly payment moves the borrower one step
+further behind. The 90-day point sits in the upper part of the `Late (31-120 days)`
+bucket, implying a lag of **~4 months**, so the cutoff was corrected from 9 to
+**12 - 4 = 8**.
+
+**Sensitivity, after measurement:**
+
+| Cutoff | Implied lag | Rate | Status |
+|---|---|---|---|
+| 8 | 4 months | **3.70%** | chosen, matches measurement |
+| 9 | 3 months | 4.38% | original guess; still plausible (lag brackets 3-4) |
+| 12 | 0 months | 6.51% | implausible - implies 90 DPD on the first missed payment |
+
+**This is the headline methodological result of Stage 3.** Measuring the lag narrowed
+the plausible range from 4.38-6.51% (2.13 pp of ignorance) to 3.70-4.38% (0.68 pp) -
+roughly a two-thirds reduction in uncertainty. The README should say plainly:
+*"I assumed a 3-month lag, measured it against the data, found it closer to 4, and
+corrected the cutoff."* A residual 0.68 pp uncertainty remains and must still be
+disclosed in "Responsible-use and limitations".
 
 **Consequences for later stages:**
-- Accuracy is meaningless here: predicting "never defaults" scores 95.6%. Excluded
+- Accuracy is meaningless here: predicting "never defaults" scores 96.3%. Excluded
   from the evaluation set, as agreed.
-- `class_weight='balanced'` is justified by the 21.9:1 imbalance. Still to be tried
-  BEFORE any SMOTE, per user instruction.
-- User predicted 20%, which is close to the *lifetime* rate (16.84%) rather than the
-  12-month rate. Good teaching moment: it is the Option A vs Option B distinction
-  showing up in the data.
+- `class_weight='balanced'` is justified by the 26.0:1 imbalance (worse than the
+  21.9:1 at cutoff 9). Still to be tried BEFORE any SMOTE, per user instruction.
+- User predicted 20% for the default rate, which is close to the *lifetime* rate
+  (16.84%) rather than the 12-month rate. Good teaching moment: the Option A vs
+  Option B distinction showing up in the data.
