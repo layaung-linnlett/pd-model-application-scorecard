@@ -14,7 +14,9 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 1 — Data source & target definition.** BLOCKED, awaiting user decision.
+**Stage 1 — Data source & target definition.** Data source DONE and verified.
+Target rule agreed (Option B) but **not yet implemented in code**.
+Next: Stage 2 leakage checklist — awaiting user "continue".
 
 ---
 
@@ -40,11 +42,20 @@ user explicitly says "continue".
   months, with the base-rate movement reported in the README.
 - File will be downloaded by the user into `data/raw/`.
 
-**Still open 2026-09-05:** which Kaggle dataset to download.
-Claude recommends `wordsforthewise/lending-club` (2007-2018Q4) over the classic
-`wendykan/lending-club-loan-data` (2007-2015), because the 2015-cutoff snapshot
-right-censors the 2015-2016 cohort and would systematically mislabel Option B defaults
-as non-defaults. Awaiting user decision. Nothing downstream may start.
+**Settled 2026-09-06:** dataset = `wordsforthewise/lending-club`,
+file `data/raw/accepted_2007_to_2018Q4.csv` (1.6 GB, gitignored).
+An earlier download of `wendykan/lending-club-loan-data` (`loan.csv`) was discarded.
+
+Verified empirically by `src/00_inspect_raw.py` rather than trusting the filename:
+- 2,260,701 rows; originations span 2007-2018
+- snapshot date (max `last_credit_pull_d`) = **Apr 2019**
+- 2015 cohort 421,095 + 2016 cohort 434,407 = **855,502 loans**
+
+Last origination Dec 2016 vs Apr 2019 snapshot = >2 years of observation per loan,
+comfortably more than the 12-month window plus charge-off reporting lag. No
+right-censoring in this cohort.
+
+**Stage 1 COMPLETE.**
 
 ---
 
@@ -55,10 +66,11 @@ as non-defaults. Awaiting user decision. Nothing downstream may start.
 | 2026-09-05 | Project framing, target concept, and session discipline as stated by user |
 | 2026-09-05 | Repo scaffold and tooling conventions |
 | 2026-09-05 | Target definition: **Option B**, reconstructed 12-month window via `last_pymnt_d`, 9-month cutoff, sensitivity test required |
+| 2026-09-06 | Dataset: `accepted_2007_to_2018Q4.csv`; 2015-2016 cohort of 855,502 loans; Apr 2019 snapshot verified sufficient |
 
 ## Pending (not started)
 
-- [ ] Stage 1 — Data source confirmed; target definition agreed and implemented
+- [x] Stage 1 — Data source confirmed and verified; target definition agreed (implementation pending)
 - [ ] Stage 2 — Leakage checklist (application-time vs post-origination columns)  **GATE**
 - [ ] Stage 3 — Stratified train/validation/test split  **GATE**
 - [ ] Stage 4 — Logistic regression baseline + coefficient walkthrough  **GATE**
