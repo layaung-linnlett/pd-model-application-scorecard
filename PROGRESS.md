@@ -14,9 +14,8 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 2 — Leakage checklist. COMPLETE 2026-09-06.**
-Next: Stage 3 — build the modelling dataset (filter cohort, construct the Option B
-label, apply the column policy). Awaiting user "continue".
+**Stage 3 — Modelling dataset built. COMPLETE 2026-09-06.**
+Next: Stage 4 — stratified train/validation/test split. Awaiting user "continue".
 
 ---
 
@@ -70,12 +69,13 @@ right-censoring in this cohort.
 | 2026-09-06 | Drop `int_rate`, `grade`, `sub_grade` (Lending Club's own risk assessment) — and `installment`, which is a function of `int_rate` |
 | 2026-09-06 | Drop `zip_code` and `addr_state` on Equality Act 2010 fair-lending grounds |
 | 2026-09-06 | Column policy final: 78 features / 3 label-building / 70 dropped. See `docs/leakage_checklist.md` |
+| 2026-09-06 | Dataset built: 855,502 rows x 79 cols. Default rate **4.38%**, imbalance **21.9:1** |
 
 ## Pending (not started)
 
 - [x] Stage 1 — Data source confirmed and verified; target definition agreed (implementation pending)
 - [x] Stage 2 — Leakage checklist — COMPLETE 2026-09-06
-- [ ] Stage 3 — Build modelling dataset: cohort filter + Option B label + column policy  **GATE**
+- [x] Stage 3 — Build modelling dataset — COMPLETE 2026-09-06
 - [ ] Stage 4 — Stratified train/validation/test split  **GATE**
 - [ ] Stage 5 — Logistic regression baseline + coefficient walkthrough  **GATE**
       NOTE: 78 features is too many to walk through one at a time. Agree a smaller
@@ -101,3 +101,38 @@ Teaching points the user worked through and should be able to defend in an inter
 - Dropping `int_rate` is insufficient on its own: `installment` is derived from it and
   would reintroduce it. Drop functions of a dropped column too.
 - `zip_code`/`addr_state` are a *fairness* exclusion, not a leakage one.
+
+
+---
+
+### Stage 3 — Modelling dataset — COMPLETE 2026-09-06
+
+`src/01_build_dataset.py` -> `data/interim/cohort_2015_2016.parquet`
+(855,502 rows x 78 features + target, 60 MB, gitignored).
+
+**Headline numbers:**
+
+| Measure | Value |
+|---|---|
+| Cohort size | 855,502 |
+| Default within 12 months (the target) | **4.38%** (37,430) |
+| Ever charged off / defaulted (lifetime) | 16.84% (144,056) |
+| Share of all defaults occurring after month 12 | 74% |
+| Class balance | 21.9 : 1 |
+| Never made any payment | 811 |
+
+**Sensitivity check on the Option B lag assumption — MATERIAL, must appear in README:**
+- 9-month cutoff (the agreed rule): 4.38%
+- 12-month cutoff: 6.51%
+- Moves 2.13 pp, i.e. roughly **50% more defaults** in relative terms. The headline
+  rate genuinely depends on an unverifiable assumption. State this plainly in
+  "Responsible-use and limitations"; do not bury it.
+
+**Consequences for later stages:**
+- Accuracy is meaningless here: predicting "never defaults" scores 95.6%. Excluded
+  from the evaluation set, as agreed.
+- `class_weight='balanced'` is justified by the 21.9:1 imbalance. Still to be tried
+  BEFORE any SMOTE, per user instruction.
+- User predicted 20%, which is close to the *lifetime* rate (16.84%) rather than the
+  12-month rate. Good teaching moment: it is the Option A vs Option B distinction
+  showing up in the data.
