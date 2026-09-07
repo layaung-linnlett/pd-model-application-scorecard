@@ -14,10 +14,9 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 5 — Missing-data policy. COMPLETE 2026-09-07.**
-Next: Stage 6 — logistic regression baseline. Awaiting user "continue".
-OPEN ITEM to settle first: `earliest_cr_line` is a date string and must become
-credit-history length at application; see Stage 5 notes below.
+**Stage 5 — Missing-data policy + feature derivation. COMPLETE 2026-09-07.**
+Dataset is final. Next: Stage 6 — logistic regression baseline.
+Awaiting user "continue".
 
 ---
 
@@ -231,10 +230,22 @@ Cohort was NOT reduced to 2016-only; the user chose to drop 14 columns rather th
 
 Features 64 -> 76 columns entering the model, before one-hot encoding.
 
-**OPEN ITEM for Stage 6.** `earliest_cr_line` is a date string ("Aug-2003") and is
-currently sitting in the feature set unusable. It should become credit-history length
-in months at application = months(earliest_cr_line -> issue_d). That needs `issue_d`,
-which is dropped during dataset build, so `src/01_build_dataset.py` must derive it
-there and another rebuild is required. NOTE: `issue_d` itself must never become a
-feature - it is the vintage, and would reproduce exactly the trap the 14 dropped
-columns represent.
+**RESOLVED 2026-09-07 — `earliest_cr_line` converted.** It was a date string
+("Aug-2003") that a model cannot do arithmetic on. `src/01_build_dataset.py` now
+derives `credit_history_months = months(earliest_cr_line -> issue_d)` and drops the
+raw date. Feature count unchanged at 64 (one swapped for one). `cfg.model_features()`
+is the accessor for the model's column list; `cfg.FEATURES` still contains
+`earliest_cr_line` so the 151-column classification stays complete.
+
+`issue_d` is used for the subtraction and immediately discarded. It must NEVER be a
+feature: it is the loan vintage, and would reproduce exactly the trap that
+DROP_TIME_VARYING_AVAILABILITY exists to prevent.
+
+Sanity checks on the derived column: median 182 months (15.2 years), min 37, max 999,
+**0 blanks, 0 negatives**. The 999 was investigated and is genuine - the borrower's
+first credit account dates to Mar-1933 - not a sentinel value. The distribution is
+smooth (99% at 486, 99.9% at 603); 4 loans exceed 70 years and are probably data-entry
+errors, but at 4 in 855,502 they cannot shift the fit.
+
+DECISION: no capping/winsorising before the baseline. Revisit only if the baseline
+shows sensitivity to extreme values. Record as a known limitation in the README.

@@ -189,3 +189,16 @@ MEANING = {
     "sec_app_collections_12_mths_ex_med": "Second applicant's debts sent to collectors",
     "sec_app_mths_since_last_major_derog": "Second applicant's months since a serious black mark",
 }
+
+
+# Columns we create ourselves - not present in the raw file.
+DERIVED_MEANING = {
+    "credit_history_months": (
+        "How many months of credit history the borrower had when they applied "
+        "(from earliest_cr_line to issue_d). Replaces the raw date."
+    ),
+    "default_within_12_months": (
+        "THE TARGET. 1 if the borrower reached 90+ days past due within 12 "
+        "months of the loan starting, 0 otherwise."
+    ),
+}

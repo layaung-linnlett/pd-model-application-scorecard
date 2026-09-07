@@ -158,7 +158,21 @@ CATEGORICAL_FEATURES = [
     "home_ownership", "verification_status",
 ]
 
-# `earliest_cr_line` is a date string ("Aug-2003"), not a category. It must be
-# turned into credit history LENGTH at application, which needs issue_d and so
-# has to happen during dataset build. Open item for Stage 6.
+# `earliest_cr_line` is a date string ("Aug-2003"), not something a model can
+# read. It is converted during dataset build into how LONG the borrower has held
+# credit, which needs `issue_d`:
+#
+#     credit_history_months = months(earliest_cr_line -> issue_d)
+#
+# `issue_d` is used for this and then discarded. It must NEVER become a feature
+# in its own right: it is the loan vintage, and would let the model learn
+# "2015 loans are safer" - exactly the trap that DROP_TIME_VARYING_AVAILABILITY
+# exists to avoid. The derived value is a borrower attribute, not a date stamp.
 DATE_FEATURES_TO_DERIVE = ["earliest_cr_line"]
+DERIVED_FEATURES = ["credit_history_months"]
+
+
+def model_features() -> list[str]:
+    """The columns actually handed to the model: FEATURES with the raw date
+    columns swapped out for the values derived from them."""
+    return [c for c in FEATURES if c not in DATE_FEATURES_TO_DERIVE] + DERIVED_FEATURES
