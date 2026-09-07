@@ -53,6 +53,28 @@ def months_between(start: pd.Series, end: pd.Series) -> pd.Series:
     return (end.dt.year - start.dt.year) * 12 + (end.dt.month - start.dt.month)
 
 
+def apply_data_quality_limits(df: pd.DataFrame) -> pd.DataFrame:
+    """Set impossible values to missing. Not deleted, not capped.
+
+    Deleting would discard a borrower's other valid columns over one bad field.
+    Capping would assert a value we do not believe. Setting to missing says
+    "we do not know", which is true, and lets the agreed missing-data policy
+    handle it from there.
+    """
+    print("\nData-quality limits (impossible values -> missing):")
+    for col, rule in cfg.DATA_QUALITY_LIMITS.items():
+        bad = pd.Series(False, index=df.index)
+        if "min" in rule:
+            bad |= df[col] < rule["min"]
+        if "max" in rule:
+            bad |= df[col] > rule["max"]
+        n = int(bad.sum())
+        df.loc[bad, col] = pd.NA
+        bounds = " and ".join(f"{k} {v:,}" for k, v in rule.items())
+        print(f"  {col:<20} outside [{bounds}]  ->  {n:>4} values cleared")
+    return df
+
+
 def main() -> None:
     print(f"Reading {RAW.name} ({len(READ_COLS)} of 151 columns)...")
 
@@ -82,6 +104,8 @@ def main() -> None:
         return (died & within).astype("int8")
 
     df["default_within_12_months"] = label_at(CUTOFF_MONTHS)
+
+    df = apply_data_quality_limits(df)
 
     # --- Report ------------------------------------------------------------
     print("loan_status in cohort:")

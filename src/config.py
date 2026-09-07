@@ -193,3 +193,44 @@ DERIVED_FEATURES: list[str] = []
 def model_features() -> list[str]:
     """The columns actually handed to the model."""
     return [c for c in FEATURES if c not in DATE_FEATURES_TO_DERIVE] + DERIVED_FEATURES
+
+
+# ---------------------------------------------------------------------------
+# Data-quality limits (agreed 2026-09-07). See docs/data_quality_decision_log.md
+#
+# Values outside these bounds are set to MISSING, not deleted and not capped:
+#   - not deleted, because one bad field should not discard a borrower's other
+#     60 valid columns;
+#   - not capped, because capping asserts a value we do not believe. Setting to
+#     missing says honestly "we do not know", and hands the row to the
+#     missing-data machinery already agreed in docs/missing_data_policy.md.
+#
+# These bounds target IMPOSSIBLE values only. Rare-but-real extremes are kept
+# deliberately - the evidence says they carry signal (dti 39-100 defaults at
+# 6.41% against a 3.70% base rate; revol_util 100-150 at 4.66%).
+# ---------------------------------------------------------------------------
+
+DATA_QUALITY_LIMITS = {
+    # 99 borrowers state income under $5,000. 93 of them borrowed MORE than
+    # their stated annual income and 72 were never income-verified. The figure
+    # is not credible, and it is what makes their dti explode.
+    "annual_inc": {"min": 5_000},
+
+    # dti = debt / income, so a broken income produces an absurd dti. Risk rises
+    # with dti up to ~39 (6.41% default) then COLLAPSES above 100 (1.23%) -
+    # real financial stress does not behave that way. 999 is a placeholder.
+    "dti": {"min": 0, "max": 100},
+
+    # Utilisation above 100% is real (people go over their limit) and predictive.
+    # Above 150% is not credible.
+    "revol_util": {"max": 150},
+
+    # 9,999,999 is an all-9s placeholder, not a credit limit.
+    "total_rev_hi_lim": {"max": 9_999_998},
+
+    # 61 bankruptcies/liens for one borrower is not credible. Safe to clear
+    # because the dose-response is flat: the signal is "has any public record",
+    # and the count carries nothing beyond the first.
+    "pub_rec": {"max": 20},
+    "tax_liens": {"max": 20},
+}

@@ -14,11 +14,9 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 6c — Age proxies removed. Baseline re-fitted on 61 features.**
-STILL OPEN: the outlier/capping decision (dti = 999 and friends). The user has
-provisionally decided KEEP-don't-cap for credit_history_months, but that feature
-is now gone; the wider capping question across other columns is unresolved.
-Next: settle capping, then class_weight='balanced', then Stage 7 evaluation.
+**Stage 6d — Data-quality decision log COMPLETE. Outlier question CLOSED.**
+Next: `class_weight='balanced'` (must be tried before any SMOTE), then Stage 7
+evaluation. Baseline itself is still awaiting explicit user approval.
 
 `notebooks/01_walkthrough.ipynb` reproduces every stage so far with live output.
 Regenerate it with:
@@ -400,3 +398,43 @@ no measured cost; weaker residual correlation remains and is disclosed."*
 **Method worth writing up.** The decision rule was committed to git (commit 5c060df)
 BEFORE the experiment was run, so the threshold could not be adjusted to fit the
 result. That is the defensible way to make this kind of call.
+
+
+---
+
+### Stage 6d — Data-quality decision log — COMPLETE 2026-09-07
+
+Full log in `docs/data_quality_decision_log.md`. Bounds in `DATA_QUALITY_LIMITS`
+(`src/config.py`), applied by `apply_data_quality_limits()` in `01_build_dataset.py`.
+
+**Percentile capping was CONSIDERED AND REJECTED.** At 1st/99th it would have altered
+~10,000 rows per column and flattened genuine risk signals. Rejected on the user's own
+evidence, not on preference.
+
+**Treatment chosen: impossible values -> MISSING.** Not deleted (one bad field should
+not discard 60 good columns), not capped (capping asserts a value we do not believe).
+Missing is honest and reuses the agreed missing-data policy.
+
+**295 values cleared out of 855,502 rows (0.03%):**
+annual_inc < $5,000 (99), dti outside 0-100 (136), revol_util > 150 (14),
+total_rev_hi_lim = 9,999,999 (1), pub_rec > 20 (23), tax_liens > 20 (22).
+
+**Two findings that shaped the decisions:**
+1. Low income and dti=999 are ONE defect, not two. 93 of the 99 sub-$5,000-income
+   borrowers borrowed more than their stated annual income and 72 were unverified;
+   dti = debt/income, so the broken income field produces the absurd ratio.
+2. `pub_rec` dose-response is flat beyond the first record (0 -> 3.59%, 1 -> 4.22%,
+   then 3.97 / 3.59 / 3.64%). The signal is "has any public record"; the count carries
+   nothing. Clearing the implausible tail therefore cannot lose information.
+
+**Kept deliberately, with evidence:** dti 39-100 (6.41% default), revol_util 100-150
+(4.66%), delinq_amnt > 0 (5.06%), annual_inc > $1m, high tot_coll_amt, high
+total_rev_hi_lim. These are the borrowers manual review exists to find.
+
+**Effect:** highest assigned probability 100.0% -> 56.3%; flagged at 0.5 threshold
+14 -> 2; ROC-AUC 0.6956 -> 0.6976; defaulters caught at 5% review 966 -> 971.
+
+**Residual limitation for the README:** tot_coll_amt (344 SDs), delinq_amnt (168),
+annual_inc (131), revol_bal (119) still carry large leverage. Retained because each
+carries directional signal. A production scorecard would bin variables
+(weight-of-evidence) rather than cap. Noted as future work, not done here.
