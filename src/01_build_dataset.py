@@ -71,13 +71,6 @@ def main() -> None:
     print(f"  scanned {rows_scanned:,} rows -> kept {len(df):,} in cohort\n")
 
     # --- Build the label ---------------------------------------------------
-    # --- Derived feature: how long they have held credit ------------------
-    # A date string is useless to a model; the LENGTH of credit history is not.
-    # This is the only legitimate use of issue_d - it is discarded straight
-    # after, and never becomes a feature itself.
-    earliest = pd.to_datetime(df["earliest_cr_line"], format="%b-%Y", errors="coerce")
-    df["credit_history_months"] = months_between(earliest, df["issue_dt"])
-
     df["last_pymnt_dt"] = pd.to_datetime(df["last_pymnt_d"], format="%b-%Y", errors="coerce")
     df["months_to_last_pymnt"] = months_between(df["issue_dt"], df["last_pymnt_dt"])
 
@@ -99,11 +92,6 @@ def main() -> None:
     n = len(df)
     n_died = int(died.sum())
     n_default = int(df["default_within_12_months"].sum())
-
-    ch = df["credit_history_months"]
-    print(f"\ncredit_history_months: median {ch.median():.0f} "
-          f"({ch.median()/12:.1f} years), range {ch.min():.0f} to {ch.max():.0f}"
-          f", blank {ch.isna().sum():,}, negative {(ch < 0).sum():,}")
 
     print(f"\nLoans in cohort:                 {n:,}")
     print(f"Ever charged off / defaulted:    {n_died:,}  ({n_died / n:.2%})")

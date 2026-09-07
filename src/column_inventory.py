@@ -44,6 +44,10 @@ GROUPS = {
                                        "Only collected from Dec 2015. Tells you "
                                        "WHEN the loan was issued, not who the "
                                        "borrower is."),
+    "DROP_AGE_PROXY": ("DROP",
+                       "Measures how long ago they started using credit, which "
+                       "stands in for age. Removed after testing showed it "
+                       "costs nothing."),
     "DROP_FAIRNESS_PROXY": ("DROP",
                             "Location. Stands in for protected characteristics "
                             "(Equality Act 2010)."),

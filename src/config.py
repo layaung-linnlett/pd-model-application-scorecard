@@ -24,7 +24,7 @@ APPLICATION_STATED = [
 
 # Credit-bureau attributes pulled at application
 BUREAU_CORE = [
-    "fico_range_low", "fico_range_high", "earliest_cr_line",
+    "fico_range_low", "fico_range_high",
     "delinq_2yrs", "inq_last_6mths", "open_acc", "pub_rec",
     "revol_bal", "revol_util", "total_acc",
     "collections_12_mths_ex_med", "mths_since_last_delinq",
@@ -34,8 +34,7 @@ BUREAU_CORE = [
 ]
 
 BUREAU_EXTENDED = ["tot_coll_amt", "tot_cur_bal", "total_rev_hi_lim",
-     "acc_open_past_24mths", "avg_cur_bal", "bc_open_to_buy", "bc_util",
-     "mo_sin_old_il_acct", "mo_sin_old_rev_tl_op", "mo_sin_rcnt_rev_tl_op",
+     "acc_open_past_24mths", "avg_cur_bal", "bc_open_to_buy", "bc_util", "mo_sin_rcnt_rev_tl_op",
      "mo_sin_rcnt_tl", "mort_acc", "mths_since_recent_bc",
      "mths_since_recent_bc_dlq", "mths_since_recent_inq",
      "mths_since_recent_revol_delinq", "num_accts_ever_120_pd",
@@ -142,7 +141,6 @@ MISSING_FLAG_COLUMNS = [
     "mths_since_last_delinq",          # 47.8% - never delinquent
     "mths_since_recent_inq",           # 10.5% - no recent credit enquiry
     "num_tl_120dpd_2m",                #  4.8%
-    "mo_sin_old_il_acct",              #  2.8%
     "bc_util",                         #  1.1%
     "percent_bc_gt_75",                #  1.0%
     "bc_open_to_buy",                  #  1.0%
@@ -158,21 +156,40 @@ CATEGORICAL_FEATURES = [
     "home_ownership", "verification_status",
 ]
 
-# `earliest_cr_line` is a date string ("Aug-2003"), not something a model can
-# read. It is converted during dataset build into how LONG the borrower has held
-# credit, which needs `issue_d`:
+# 7. Age proxies. Dropped 2026-09-07 after a pre-registered test.
 #
-#     credit_history_months = months(earliest_cr_line -> issue_d)
+# `earliest_cr_line` was previously converted into `credit_history_months`
+# (months of credit history at application). That value places a floor under
+# the borrower's AGE across its whole range - 600 months of history can only
+# belong to someone around 68 - and age is protected under the Equality Act 2010.
 #
-# `issue_d` is used for this and then discarded. It must NEVER become a feature
-# in its own right: it is the loan vintage, and would let the model learn
-# "2015 loans are safer" - exactly the trap that DROP_TIME_VARYING_AVAILABILITY
-# exists to avoid. The derived value is a borrower attribute, not a date stamp.
-DATE_FEATURES_TO_DERIVE = ["earliest_cr_line"]
-DERIVED_FEATURES = ["credit_history_months"]
+# `mo_sin_old_rev_tl_op` correlates with it at 0.92 and `mo_sin_old_il_acct` at
+# 0.35; all three measure "how long ago did you start using credit". Dropping
+# only one would have been cosmetic, because the other two carry the same signal.
+#
+# The test (validation pile, riskiest 5% reviewed, 6,326 actual defaulters):
+#     keep everything            964 defaulters caught
+#     drop credit_history_months 972
+#     drop the 0.92 pair         960
+#     drop all age-linked        961
+# All within the +/-31 expected from chance, so removing them costs nothing
+# measurable. The pre-registered bar was a 1% relative gain to justify KEEPING
+# a feature with known fairness risk; it was not met.
+#
+# NOTE: this does NOT make the model age-blind. Account counts (`total_acc`,
+# `num_rev_accts`, `mort_acc`) still correlate with age at 0.26-0.31. They are
+# retained as legitimately distinct measures, and the residual is disclosed in
+# the README rather than hidden.
+DROP_AGE_PROXY = [
+    "earliest_cr_line", "mo_sin_old_rev_tl_op", "mo_sin_old_il_acct",
+]
+
+# No derived features remain now that credit_history_months is gone. The hooks
+# stay so the inventory tooling keeps working.
+DATE_FEATURES_TO_DERIVE: list[str] = []
+DERIVED_FEATURES: list[str] = []
 
 
 def model_features() -> list[str]:
-    """The columns actually handed to the model: FEATURES with the raw date
-    columns swapped out for the values derived from them."""
+    """The columns actually handed to the model."""
     return [c for c in FEATURES if c not in DATE_FEATURES_TO_DERIVE] + DERIVED_FEATURES

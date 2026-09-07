@@ -14,9 +14,11 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 6 — Baseline logistic regression FITTED, but not yet approved.**
-An outlier problem surfaced during the fit (see Stage 6 notes) and must be
-settled before the coefficient walkthrough. Awaiting user decision on capping.
+**Stage 6c — Age proxies removed. Baseline re-fitted on 61 features.**
+STILL OPEN: the outlier/capping decision (dti = 999 and friends). The user has
+provisionally decided KEEP-don't-cap for credit_history_months, but that feature
+is now gone; the wider capping question across other columns is unresolved.
+Next: settle capping, then class_weight='balanced', then Stage 7 evaluation.
 
 `notebooks/01_walkthrough.ipynb` reproduces every stage so far with live output.
 Regenerate it with:
@@ -343,3 +345,58 @@ would never operate at. The decision is about performance in the review region o
 
 This rule is committed before the experiment so the threshold cannot be adjusted to fit
 whatever result appears. Result to follow in Stage 6c.
+
+
+---
+
+### Stage 6c — Age-proxy features removed — DONE 2026-09-07
+
+**Result of the pre-registered test** (validation, riskiest 5% = 8,555 reviewed,
+6,326 actual defaulters):
+
+| model | defaulters caught | recall | ROC-AUC |
+|---|---|---|---|
+| keep everything | 964 | 15.24% | 0.6969 |
+| drop `credit_history_months` only | 972 | 15.37% | 0.6969 |
+| drop the 0.92 pair | 960 | 15.18% | 0.6961 |
+| drop all 8 "age-linked" | 961 | 15.19% | 0.6948 |
+
+All four sit inside the +/-31 expected from chance. **There is no measurable
+difference between them.** Performance therefore had no vote in the decision.
+
+**Why dropping only `credit_history_months` would have been cosmetic.**
+`mo_sin_old_rev_tl_op` correlates with it at **0.92** - it is the same measurement
+("how long ago did you start using credit") under another name. Removing one while
+keeping the other changes the feature list and not the model. That is why the
+single-feature test showed no loss: the information never left.
+
+**Correction made during the analysis.** An initial grouping of 8 "age-linked"
+features was too broad. Only three are direct time-since-first-credit measures:
+
+    earliest_cr_line -> credit_history_months   (the derived feature, now gone)
+    mo_sin_old_rev_tl_op                        corr 0.92
+    mo_sin_old_il_acct                          corr 0.35
+
+`mo_sin_rcnt_rev_tl_op` and `mo_sin_rcnt_tl` measure how RECENTLY an account was
+opened - current behaviour, not accumulated time - and were wrongly included.
+`mort_acc`, `total_acc`, `num_rev_accts` correlate only 0.26-0.31; having four credit
+cards is not a measure of age. All five retained.
+
+**ACTION TAKEN:** dropped `earliest_cr_line`, `mo_sin_old_rev_tl_op`,
+`mo_sin_old_il_acct`. Features 64 -> **61**. Missing-flags 12 -> 11
+(`mo_sin_old_il_acct` had one). The `credit_history_months` derivation is removed
+from `src/01_build_dataset.py`; `DATE_FEATURES_TO_DERIVE` and `DERIVED_FEATURES` are
+now empty but retained as hooks for the inventory tooling.
+
+Rebuilt, re-split, re-fitted. Cohort, default rate and split are unchanged
+(855,502 / 3.70% / 26:1). Re-fit: 96 encoded columns, ROC-AUC 0.6956,
+**966 defaulters caught at 5% review** (vs 964 before - noise).
+
+**IMPORTANT for the README - do not overclaim.** This does NOT make the model
+age-blind. Account-count features still correlate with age at 0.26-0.31 and are
+retained. The honest claim is: *"direct age proxies were identified and removed at
+no measured cost; weaker residual correlation remains and is disclosed."*
+
+**Method worth writing up.** The decision rule was committed to git (commit 5c060df)
+BEFORE the experiment was run, so the threshold could not be adjusted to fit the
+result. That is the defensible way to make this kind of call.
