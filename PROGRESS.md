@@ -2,6 +2,34 @@
 
 > **Read this file first at the start of every session, before doing anything else.**
 
+---
+
+## ⏸  RESUME HERE  (paused 2026-09-07)
+
+Everything is committed and the working tree is clean. Nothing is half-finished.
+
+**The one open question, asked but not answered:**
+
+> With `class_weight='balanced'`, does the number of real defaulters caught in the
+> riskiest 5% go up a lot, up a little, or stay about the same?
+> (Currently 971 of 6,326.)
+>
+> Hint given: does making defaulters count for more change WHO the model thinks is
+> riskiest, or just how worried it is about everyone?
+
+The user should answer that prediction first; then write and run the comparison.
+Nothing has been built for it yet.
+
+**Working style reminders — the user asked for these explicitly:**
+- Cassie Kozyrkov-style: ask a question they can answer from ordinary life BEFORE
+  explaining. Their answer is usually the technical policy restated.
+- One idea per message. Short. Define every term. No stacked tables while teaching.
+- Do not write project code without asking; they want to attempt it.
+- If they say they are lost, stop and find the last solid ground - do not patch the
+  current step.
+- Show real output. They cannot open the 1.6 GB CSV; use
+  `notebooks/01_walkthrough.ipynb`, `outputs/column_inventory.csv`, or a small sample.
+
 **Project:** Using information known at loan-application time, estimate a borrower's
 probability of default within 12 months, so higher-risk applicants can be routed to
 manual review instead of reviewing everyone.
