@@ -33,22 +33,34 @@ BUREAU_CORE = [
     "chargeoff_within_12_mths",
 ]
 
-BUREAU_EXTENDED = [
-    "tot_coll_amt", "tot_cur_bal", "open_acc_6m", "open_act_il",
-    "open_il_12m", "open_il_24m", "mths_since_rcnt_il", "total_bal_il",
-    "il_util", "open_rv_12m", "open_rv_24m", "max_bal_bc", "all_util",
-    "total_rev_hi_lim", "inq_fi", "total_cu_tl", "inq_last_12m",
-    "acc_open_past_24mths", "avg_cur_bal", "bc_open_to_buy", "bc_util",
-    "mo_sin_old_il_acct", "mo_sin_old_rev_tl_op", "mo_sin_rcnt_rev_tl_op",
-    "mo_sin_rcnt_tl", "mort_acc", "mths_since_recent_bc",
-    "mths_since_recent_bc_dlq", "mths_since_recent_inq",
-    "mths_since_recent_revol_delinq", "num_accts_ever_120_pd",
-    "num_actv_bc_tl", "num_actv_rev_tl", "num_bc_sats", "num_bc_tl",
-    "num_il_tl", "num_op_rev_tl", "num_rev_accts", "num_rev_tl_bal_gt_0",
-    "num_sats", "num_tl_120dpd_2m", "num_tl_30dpd", "num_tl_90g_dpd_24m",
-    "num_tl_op_past_12m", "pct_tl_nvr_dlq", "percent_bc_gt_75",
-    "tot_hi_cred_lim", "total_bal_ex_mort", "total_bc_limit",
-    "total_il_high_credit_limit",
+BUREAU_EXTENDED = ["tot_coll_amt", "tot_cur_bal", "total_rev_hi_lim",
+     "acc_open_past_24mths", "avg_cur_bal", "bc_open_to_buy", "bc_util",
+     "mo_sin_old_il_acct", "mo_sin_old_rev_tl_op", "mo_sin_rcnt_rev_tl_op",
+     "mo_sin_rcnt_tl", "mort_acc", "mths_since_recent_bc",
+     "mths_since_recent_bc_dlq", "mths_since_recent_inq",
+     "mths_since_recent_revol_delinq", "num_accts_ever_120_pd",
+     "num_actv_bc_tl", "num_actv_rev_tl", "num_bc_sats", "num_bc_tl",
+     "num_il_tl", "num_op_rev_tl", "num_rev_accts", "num_rev_tl_bal_gt_0",
+     "num_sats", "num_tl_120dpd_2m", "num_tl_30dpd", "num_tl_90g_dpd_24m",
+     "num_tl_op_past_12m", "pct_tl_nvr_dlq", "percent_bc_gt_75",
+     "tot_hi_cred_lim", "total_bal_ex_mort", "total_bc_limit",
+     "total_il_high_credit_limit",
+]
+
+# 6. Credit-bureau fields Lending Club only began collecting in Dec 2015.
+#    NOT a timing leak and NOT ordinary missingness: they are missing for ~100%
+#    of 2015 originations and ~0% of 2016 ones, so their presence encodes WHEN
+#    the loan was issued rather than anything about the borrower. A model given
+#    these (or missing-indicators for them) would learn "issued before Dec 2015
+#    = safer", which is a vintage artefact with no predictive value for a new
+#    applicant. Dropped by user decision 2026-09-07.
+#    `il_util` and `mths_since_rcnt_il` are mixed cases - still 13.2% and 2.7%
+#    missing in 2016, for borrowers with no installment loans - but they carry
+#    the same Dec-2015 discontinuity, so they go with the block.
+DROP_TIME_VARYING_AVAILABILITY = [
+    "all_util", "inq_last_12m", "total_cu_tl", "open_acc_6m", "open_il_24m",
+    "open_act_il", "open_il_12m", "max_bal_bc", "open_rv_12m", "open_rv_24m",
+    "inq_fi", "total_bal_il", "il_util", "mths_since_rcnt_il",
 ]
 
 FEATURES = APPLICATION_STATED + BUREAU_CORE + BUREAU_EXTENDED
@@ -107,3 +119,46 @@ DROP_JOINT_SPARSE = [
 DROP_FAIRNESS_PROXY = ["zip_code", "addr_state"]
 
 COHORT_START, COHORT_END = "2015-01", "2016-12"
+
+
+# ---------------------------------------------------------------------------
+# Missing-data policy (agreed 2026-09-07). See docs/missing_data_policy.md.
+#
+# Rule 1  numeric column with blanks -> add a binary "<col>_missing" flag, then
+#         fill the blank with the MEDIAN OF THE TRAINING PILE.
+# Rule 2  emp_length is text; blank becomes its own category, "Unknown".
+# Rule 3  every fill value is computed on train only and applied unchanged to
+#         val and test. Computing it across all the data would leak.
+#
+# Flags are added only where at least 0.5% of training rows are blank. Below
+# that there is too little data for the flag to carry meaning.
+# ---------------------------------------------------------------------------
+
+MISSING_FLAG_COLUMNS = [
+    "mths_since_last_record",          # 81.6% blank - no public record
+    "mths_since_recent_bc_dlq",        # 74.3% - no bankcard delinquency
+    "mths_since_last_major_derog",     # 70.9% - no major derogatory event
+    "mths_since_recent_revol_delinq",  # 63.8% - no revolving delinquency
+    "mths_since_last_delinq",          # 47.8% - never delinquent
+    "mths_since_recent_inq",           # 10.5% - no recent credit enquiry
+    "num_tl_120dpd_2m",                #  4.8%
+    "mo_sin_old_il_acct",              #  2.8%
+    "bc_util",                         #  1.1%
+    "percent_bc_gt_75",                #  1.0%
+    "bc_open_to_buy",                  #  1.0%
+    "mths_since_recent_bc",            #  0.9%
+]
+
+# Median-filled but NOT flagged: too few blanks for a flag to mean anything.
+MEDIAN_FILL_ONLY = ["dti", "revol_util", "inq_last_6mths", "num_rev_accts"]
+
+# Text features. `emp_length` carries an informative blank -> "Unknown".
+CATEGORICAL_FEATURES = [
+    "term", "purpose", "application_type", "emp_length",
+    "home_ownership", "verification_status",
+]
+
+# `earliest_cr_line` is a date string ("Aug-2003"), not a category. It must be
+# turned into credit history LENGTH at application, which needs issue_d and so
+# has to happen during dataset build. Open item for Stage 6.
+DATE_FEATURES_TO_DERIVE = ["earliest_cr_line"]

@@ -14,9 +14,10 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 4 — Stratified split. COMPLETE 2026-09-07.**
-Next: Stage 5 — missing-data policy (a stated README deliverable), then the logistic
-regression baseline. Awaiting user "continue".
+**Stage 5 — Missing-data policy. COMPLETE 2026-09-07.**
+Next: Stage 6 — logistic regression baseline. Awaiting user "continue".
+OPEN ITEM to settle first: `earliest_cr_line` is a date string and must become
+credit-history length at application; see Stage 5 notes below.
 
 ---
 
@@ -73,6 +74,8 @@ right-censoring in this cohort.
 | 2026-09-06 | Stay with Option B (12-month window), not Option A (lifetime) — confirmed after review |
 | 2026-09-06 | Lag measured, not assumed: cutoff corrected 9 -> **8**. Default rate **3.70%**, imbalance **26.0:1** |
 | 2026-09-07 | Split 60/20/20 stratified, `random_state=42`. Split done BEFORE any cleaning, to prevent preprocessing leakage |
+| 2026-09-07 | Drop 14 Dec-2015 bureau columns (availability is a date stamp, not a borrower attribute). Features 78 -> **64** |
+| 2026-09-07 | Missing-data policy approved: flag + train-median for numerics, "Unknown" category for `emp_length`, fills learned on train only |
 
 ## Pending (not started)
 
@@ -80,7 +83,7 @@ right-censoring in this cohort.
 - [x] Stage 2 — Leakage checklist — COMPLETE 2026-09-06
 - [x] Stage 3 — Build modelling dataset — COMPLETE 2026-09-06
 - [x] Stage 4 — Stratified train/validation/test split — COMPLETE 2026-09-07
-- [ ] Stage 5 — Missing-data policy: inspect missingness, agree treatment  **GATE**
+- [x] Stage 5 — Missing-data policy — COMPLETE 2026-09-07
 - [ ] Stage 6 — Logistic regression baseline + coefficient walkthrough  **GATE**
       NOTE: 78 features is too many to walk through one at a time. Agree a smaller
       core set with the user before the walkthrough.
@@ -197,3 +200,41 @@ directly: counts 18,977 / 6,326 / 6,326 against identical rates.
 out-of-time split - train on 2015, test on 2016 - to see whether the model survives
 into a later period. The user specified a random stratified split, which is what is
 implemented. Worth offering as an extension before the README stage.
+
+
+---
+
+### Stage 5 — Missing-data policy — COMPLETE 2026-09-07
+
+Full write-up in `docs/missing_data_policy.md`; lists live in `src/config.py`.
+
+**Dropped rather than filled — 14 columns.** `src/04_missingness.py` found twelve
+bureau columns missing at an identical 46.7%, on the same rows (239,558 all-missing
+vs 239,571 any-missing out of 513,300). Cause: Lending Club began collecting them in
+Dec 2015. Missingness by origination month is a step function - 100% through Nov 2015,
+51.8% in Dec 2015, 0.0% from Jan 2016. `il_util` (13.2% missing even in 2016) and
+`mths_since_rcnt_il` (2.7%) share the discontinuity and went with the block.
+
+Their apparent predictive signal (-0.59 pp, identical across all twelve) was purely
+the 2015-vs-2016 vintage difference. Keeping them, or flagging their missingness,
+would have taught the model a date stamp.
+
+Cohort was NOT reduced to 2016-only; the user chose to drop 14 columns rather than
+421,095 rows.
+
+**Policy for what remains (17 columns with blanks):**
+- 12 numeric columns >= 0.5% blank: binary `<col>_missing` flag + train-median fill
+- 4 numeric columns with trace blanks: median fill, no flag
+- `emp_length`: blank becomes an "Unknown" category (missing 4.92% default vs
+  present 3.62% - the blank is informative)
+- All fill values computed on train only, applied unchanged to val/test
+
+Features 64 -> 76 columns entering the model, before one-hot encoding.
+
+**OPEN ITEM for Stage 6.** `earliest_cr_line` is a date string ("Aug-2003") and is
+currently sitting in the feature set unusable. It should become credit-history length
+in months at application = months(earliest_cr_line -> issue_d). That needs `issue_d`,
+which is dropped during dataset build, so `src/01_build_dataset.py` must derive it
+there and another rebuild is required. NOTE: `issue_d` itself must never become a
+feature - it is the vintage, and would reproduce exactly the trap the 14 dropped
+columns represent.

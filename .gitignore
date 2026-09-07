@@ -21,3 +21,4 @@ outputs/figures/*.png
 .vscode/
 .pytest_cache/
 .ipynb_checkpoints/
+outputs/*.csv
