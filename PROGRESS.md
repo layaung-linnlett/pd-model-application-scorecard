@@ -14,9 +14,13 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 5 — Missing-data policy + feature derivation. COMPLETE 2026-09-07.**
-Dataset is final. Next: Stage 6 — logistic regression baseline.
-Awaiting user "continue".
+**Stage 6 — Baseline logistic regression FITTED, but not yet approved.**
+An outlier problem surfaced during the fit (see Stage 6 notes) and must be
+settled before the coefficient walkthrough. Awaiting user decision on capping.
+
+`notebooks/01_walkthrough.ipynb` reproduces every stage so far with live output.
+Regenerate it with:
+    ./.venv/bin/python -m nbconvert --to notebook --execute --inplace notebooks/01_walkthrough.ipynb
 
 ---
 
@@ -249,3 +253,61 @@ errors, but at 4 in 855,502 they cannot shift the fit.
 
 DECISION: no capping/winsorising before the baseline. Revisit only if the baseline
 shows sensitivity to extreme values. Record as a known limitation in the README.
+
+
+---
+
+### Stage 6 — Baseline logistic regression — FITTED, NOT APPROVED 2026-09-07
+
+`src/05_baseline_logistic.py` -> `outputs/models/baseline_logistic.joblib`,
+`outputs/baseline_coefficients.csv`
+
+Plain LogisticRegression, no class weighting, no resampling - the honest starting
+point, per the user's instruction that `class_weight='balanced'` comes later and
+SMOTE later still.
+
+Pipeline: 12 missing-flags added outside the pipeline (deterministic per row, so no
+leakage), then median fill + StandardScaler on 58 numerics, passthrough on flags,
+"Unknown" fill + one-hot on 6 text columns. 100 columns after encoding. Converged in
+41 iterations.
+
+| Measure | Value |
+|---|---|
+| ROC-AUC (validation) | 0.6969 |
+| Flagged at prob >= 0.5 | 15 of 171,101 |
+| Actually defaulted | 6,326 |
+
+The 15-vs-6,326 result is the imbalance problem made concrete and is expected, not a
+bug: at a 3.70% base rate the model is rarely more than 50% confident about anyone.
+Motivates `class_weight='balanced'` next.
+
+**BLOCKER - outliers. Decision pending.** One borrower scored 99.99994%. Diagnosis:
+`dti = 999` (a placeholder; debt payments at ten times income), sitting 101 standard
+deviations out. Because logistic regression multiplies and adds, that single value
+swamped the other 99 columns.
+
+This is widespread, not isolated:
+
+| column | worst value | SDs from mean |
+|---|---|---|
+| tot_coll_amt | 848,438 | 344 |
+| total_rev_hi_lim | 9,999,999 (all-9s placeholder) | 266 |
+| annual_inc | 9,573,072 | 131 |
+| revol_bal | 2,904,836 | 119 |
+| dti | 999 | 101 |
+
+Only 81 of 513,300 training rows have `dti >= 100`, and 560 cells out of 17.1m exceed
+20 SDs - a tiny tail with outsized influence.
+
+PROPOSED (awaiting user approval): winsorise every numeric feature at its 0.1st and
+99.9th percentile, learned on train only, inside the pipeline. 99.9 rather than 99 so
+genuinely high earners are preserved. Then re-fit and run the coefficient walkthrough.
+
+NOTE: this reverses the Stage 5 decision to defer capping. That decision was explicitly
+conditional - "revisit only if the baseline shows sensitivity to extreme values" - and
+the baseline showed exactly that.
+
+**Also flagged for the walkthrough:** `OneHotEncoder(drop="first")` dropped a rare
+`home_ownership` category as the reference level, so all three visible home_ownership
+coefficients are negative and hard to read. Consider dropping the most COMMON category
+instead, or not dropping at all, before interpreting coefficients.
