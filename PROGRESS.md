@@ -311,3 +311,35 @@ the baseline showed exactly that.
 `home_ownership` category as the reference level, so all three visible home_ownership
 coefficients are negative and hard to read. Consider dropping the most COMMON category
 instead, or not dropping at all, before interpreting coefficients.
+
+
+---
+
+### Stage 6b — PRE-REGISTERED DECISION RULE, set 2026-09-07 BEFORE the test was run
+
+**Question:** should `credit_history_months` stay in the model?
+
+**Why it is in question.** Its coefficient is +0.056, third weakest of the core ten, yet
+it may act as a proxy for AGE across its full range (longer histories require more time
+to accumulate, so the value places a floor under the borrower's age). Age is a protected
+characteristic under the Equality Act 2010. Known fairness cost, weak measured benefit.
+
+**Burden of proof sits on RETAINING the feature**, not on dropping it. A potentially
+sensitive proxy has to earn its place; it is not entitled to one just by being available.
+
+**The criterion — chosen by the user, recorded before any result was seen:**
+
+> Retain `credit_history_months` only if it delivers at least a **1% relative
+> improvement in defaulters caught at 5% review capacity** on the validation pile.
+> Otherwise drop it.
+
+Operationally: rank the 171,101 validation borrowers by predicted probability, take the
+riskiest 5% (8,555 borrowers - the number a lender could realistically review by hand),
+and count how many of the 6,326 actual defaulters fall inside that set, with and without
+the feature.
+
+**ROC-AUC is explicitly NOT the criterion.** It averages over thresholds the business
+would never operate at. The decision is about performance in the review region only.
+
+This rule is committed before the experiment so the threshold cannot be adjusted to fit
+whatever result appears. Result to follow in Stage 6c.

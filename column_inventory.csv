@@ -1,0 +1,152 @@
+column,meaning,status,why,pct_blank,what_we_do,group
+mths_since_last_record,Months since their last public record (blank = none),KEEP,Credit-bureau fact known when they applied.,81.61,"add a '_missing' flag, then fill with the training median",BUREAU_CORE
+mths_since_recent_bc_dlq,Months since last late on a credit card (blank = never),KEEP,Credit-bureau fact known when they applied.,74.32,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+mths_since_last_major_derog,"Months since a serious black mark, 90+ days late (blank = none)",KEEP,Credit-bureau fact known when they applied.,70.97,"add a '_missing' flag, then fill with the training median",BUREAU_CORE
+mths_since_recent_revol_delinq,Months since last late on a credit card or line (blank = never),KEEP,Credit-bureau fact known when they applied.,63.84,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+mths_since_last_delinq,Months since they were last behind on a payment (blank = never),KEEP,Credit-bureau fact known when they applied.,47.78,"add a '_missing' flag, then fill with the training median",BUREAU_CORE
+mths_since_recent_inq,Months since a lender last checked their credit (blank = none recently),KEEP,Credit-bureau fact known when they applied.,10.53,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+emp_length,"How long they have been employed, 0 to 10+ years",KEEP,Stated by the borrower on the application form.,6.08,blank becomes an 'Unknown' category,APPLICATION_STATED
+num_tl_120dpd_2m,Accounts 120+ days late in the last 2 months,KEEP,Credit-bureau fact known when they applied.,4.75,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+mo_sin_old_il_acct,Months since their oldest installment loan was opened,KEEP,Credit-bureau fact known when they applied.,2.8,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+bc_util,% of their credit card limits used,KEEP,Credit-bureau fact known when they applied.,1.06,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+percent_bc_gt_75,% of their credit cards charged above 75% of the limit,KEEP,Credit-bureau fact known when they applied.,1.04,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+bc_open_to_buy,Credit card headroom left: limit minus balance,KEEP,Credit-bureau fact known when they applied.,1.01,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+mths_since_recent_bc,Months since their newest credit card was opened,KEEP,Credit-bureau fact known when they applied.,0.96,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+revol_util,% of their credit card limits currently used,KEEP,Credit-bureau fact known when they applied.,0.05,fill with the training median (too few blanks to flag),BUREAU_CORE
+dti,Debt-to-income: monthly debt payments as a % of monthly income,KEEP,Stated by the borrower on the application form.,0.01,fill with the training median (too few blanks to flag),APPLICATION_STATED
+loan_amnt,How much the borrower asked to borrow,KEEP,Stated by the borrower on the application form.,0,use as-is (nothing missing),APPLICATION_STATED
+term,Length of the loan: 36 or 60 months,KEEP,Stated by the borrower on the application form.,0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+home_ownership,"Do they rent, own outright, or have a mortgage",KEEP,Stated by the borrower on the application form.,0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+annual_inc,Yearly income the borrower stated,KEEP,Stated by the borrower on the application form.,0,use as-is (nothing missing),APPLICATION_STATED
+verification_status,Whether Lending Club checked that income was real,KEEP,Stated by the borrower on the application form.,0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+purpose,"What the loan is for: debt consolidation, car, home improvement...",KEEP,Stated by the borrower on the application form.,0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+delinq_2yrs,Times they fell 30+ days behind in the past 2 years,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+earliest_cr_line,The month they opened their very first credit account ever,KEEP,Credit-bureau fact known when they applied.,0,TO DO: convert date to credit-history length in months,BUREAU_CORE
+fico_range_low,Lower end of their credit score band when they applied,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+fico_range_high,Upper end of their credit score band when they applied,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+inq_last_6mths,Credit checks by lenders in the last 6 months,KEEP,Credit-bureau fact known when they applied.,0,fill with the training median (too few blanks to flag),BUREAU_CORE
+open_acc,Credit accounts currently open,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+pub_rec,"Number of bankruptcies, tax liens or judgments on record",KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+revol_bal,Total balance owed on credit cards and similar,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+total_acc,Total credit accounts ever opened,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+collections_12_mths_ex_med,Debts passed to collectors in the last year (excluding medical),KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+application_type,"Individual application, or joint with a second person",KEEP,Stated by the borrower on the application form.,0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+acc_now_delinq,Accounts currently behind on payments,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+tot_coll_amt,Total ever passed to debt collectors,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+tot_cur_bal,Total balance across all their accounts,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+total_rev_hi_lim,Total revolving credit limit,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+acc_open_past_24mths,Accounts opened in the last 2 years,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+avg_cur_bal,Average balance across their accounts,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+chargeoff_within_12_mths,Write-offs on their OTHER accounts in the last year,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+delinq_amnt,Amount currently overdue,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+mo_sin_old_rev_tl_op,Months since their oldest credit card was opened,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+mo_sin_rcnt_rev_tl_op,Months since their newest credit card was opened,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+mo_sin_rcnt_tl,Months since their newest account of any kind,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+mort_acc,Number of mortgage accounts,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_accts_ever_120_pd,Accounts ever 120+ days late,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_actv_bc_tl,Credit cards currently in use,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_actv_rev_tl,Revolving accounts currently in use,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_bc_sats,Credit cards in good standing,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_bc_tl,Total credit cards,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_il_tl,Total installment loans,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_op_rev_tl,Revolving accounts currently open,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_rev_accts,Revolving accounts ever opened,KEEP,Credit-bureau fact known when they applied.,0,fill with the training median (too few blanks to flag),BUREAU_EXTENDED
+num_rev_tl_bal_gt_0,Revolving accounts carrying a balance above zero,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_sats,Accounts in good standing,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_tl_30dpd,Accounts 30 days late right now,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_tl_90g_dpd_24m,Accounts 90+ days late at some point in the last 2 years,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+num_tl_op_past_12m,Accounts opened in the last year,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+pct_tl_nvr_dlq,% of their accounts that have never been late,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+pub_rec_bankruptcies,Number of bankruptcies on record,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+tax_liens,Number of unpaid-tax claims against them,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_CORE
+tot_hi_cred_lim,Total credit limit across everything,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+total_bal_ex_mort,"Total owed, excluding mortgages",KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+total_bc_limit,Total credit card limit,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+total_il_high_credit_limit,Total installment loan limit,KEEP,Credit-bureau fact known when they applied.,0,use as-is (nothing missing),BUREAU_EXTENDED
+last_pymnt_d,Month of their most recent payment,USED FOR TARGET,Used to build the target. Never given to the model.,0.09,"builds the target, then discarded",LABEL_SOURCE
+issue_d,The month the loan was granted,USED FOR TARGET,Used to build the target. Never given to the model.,0,"builds the target, then discarded",LABEL_SOURCE
+loan_status,"Where the loan stood at the snapshot: Fully Paid, Current, Charged Off...",USED FOR TARGET,Used to build the target. Never given to the model.,0,"builds the target, then discarded",LABEL_SOURCE
+member_id,Unique reference for the borrower (empty in this file),DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",100,-,DROP_NON_PREDICTIVE
+revol_bal_joint,Combined credit card balance of both applicants,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_fico_range_low,"Second applicant's credit score, lower end",DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_fico_range_high,"Second applicant's credit score, upper end",DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_earliest_cr_line,Second applicant's first ever credit account,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_inq_last_6mths,Second applicant's credit checks in last 6 months,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_mort_acc,Second applicant's mortgage accounts,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_open_acc,Second applicant's open accounts,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_revol_util,Second applicant's credit card utilisation,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_open_act_il,Second applicant's active installment loans,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_num_rev_accts,Second applicant's revolving accounts,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_chargeoff_within_12_mths,Second applicant's write-offs in the last year,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_collections_12_mths_ex_med,Second applicant's debts sent to collectors,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+sec_app_mths_since_last_major_derog,Second applicant's months since a serious black mark,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100,-,DROP_JOINT_SPARSE
+desc,Free-text description the borrower wrote,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",99.99,-,DROP_NON_PREDICTIVE
+orig_projected_additional_accrued_interest,Extra interest expected because of the plan,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.35,-,DROP_LEAKAGE
+hardship_type,Type of hardship plan,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_reason,Reason given for the hardship,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_status,"Whether the plan is active, completed or broken",DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+deferral_term,Months of payment deferred under the plan,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_amount,Reduced payment under the plan,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_start_date,When the plan started,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_end_date,When the plan ended,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+payment_plan_start_date,When the payment plan began,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_length,Length of the plan in months,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_dpd,Days past due when the plan started,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_loan_status,Loan status when the plan started,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_payoff_balance_amount,Balance owed at the start of the plan,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_last_payment_amount,Last payment made before the plan,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+annual_inc_joint,Combined yearly income of both applicants,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",98.91,-,DROP_JOINT_SPARSE
+dti_joint,Combined debt-to-income of both applicants,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",98.91,-,DROP_JOINT_SPARSE
+verification_status_joint,Whether the combined income was checked,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",98.91,-,DROP_JOINT_SPARSE
+debt_settlement_flag_date,When that settlement was flagged,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_status,Status of the settlement agreement,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_date,When the settlement was agreed,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_amount,Amount they agreed to pay,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_percentage,That amount as a % of what was owed,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_term,How many months the settlement runs,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+next_pymnt_d,Month the next payment is due,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",78.16,-,DROP_LEAKAGE
+il_util,% of installment loan limits used,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",53.76,-,DROP_TIME_VARYING_AVAILABILITY
+mths_since_rcnt_il,Months since their most recent installment loan,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",48.16,-,DROP_TIME_VARYING_AVAILABILITY
+open_acc_6m,Accounts opened in the last 6 months,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_act_il,Installment loans currently active,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_il_12m,Installment loans opened in the last year,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_il_24m,Installment loans opened in the last 2 years,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+total_bal_il,Total owed on installment loans,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_rv_12m,Revolving accounts opened in the last year,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_rv_24m,Revolving accounts opened in the last 2 years,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+max_bal_bc,Highest balance sitting on any single credit card,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+all_util,% of all their credit limits used,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+inq_fi,Number of personal-finance credit checks,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+total_cu_tl,Number of credit union accounts,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+inq_last_12m,Credit checks by lenders in the last year,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+emp_title,Job title the borrower typed in,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",6.12,-,DROP_NON_PREDICTIVE
+title,Loan title the borrower typed in themselves,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",2.72,-,DROP_NON_PREDICTIVE
+id,Unique reference number for the loan,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0,-,DROP_NON_PREDICTIVE
+funded_amnt,How much was actually lent,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0,-,DROP_NON_PREDICTIVE
+funded_amnt_inv,The share of the loan funded by investors,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0,-,DROP_NON_PREDICTIVE
+int_rate,Interest rate charged,DROP,Lending Club's own risk score (or derived from it). Using it means copying their homework.,0,-,DROP_LENDER_JUDGEMENT
+installment,The fixed monthly payment,DROP,Lending Club's own risk score (or derived from it). Using it means copying their homework.,0,-,DROP_LENDER_JUDGEMENT
+grade,"Lending Club's own risk grade, A (safest) to G (riskiest)",DROP,Lending Club's own risk score (or derived from it). Using it means copying their homework.,0,-,DROP_LENDER_JUDGEMENT
+sub_grade,"Finer version of the grade, e.g. B3",DROP,Lending Club's own risk score (or derived from it). Using it means copying their homework.,0,-,DROP_LENDER_JUDGEMENT
+pymnt_plan,Whether the loan was put on a special payment plan,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+url,Web link to the loan's page,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0,-,DROP_NON_PREDICTIVE
+zip_code,First three digits of their postcode,DROP,Location. Stands in for protected characteristics (Equality Act 2010).,0,-,DROP_FAIRNESS_PROXY
+addr_state,Which US state they live in,DROP,Location. Stands in for protected characteristics (Equality Act 2010).,0,-,DROP_FAIRNESS_PROXY
+initial_list_status,Whether the loan was listed to investors whole or in fractions,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+out_prncp,Loan amount still outstanding,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+out_prncp_inv,"Amount still outstanding, investor share",DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+total_pymnt,Total repaid so far,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+total_pymnt_inv,"Total repaid so far, investor share",DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+total_rec_prncp,How much of the original loan has been repaid,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+total_rec_int,Interest paid so far,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+total_rec_late_fee,Late fees paid,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+recoveries,Money clawed back after the debt was written off,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+collection_recovery_fee,Fee charged on money clawed back,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+last_pymnt_amnt,Size of their most recent payment,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+last_credit_pull_d,Month Lending Club last checked their credit,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+last_fico_range_high,"Most recent credit score, upper end - updated AFTER the loan started",DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+last_fico_range_low,"Most recent credit score, lower end - updated AFTER the loan started",DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+policy_code,Always 1 in this file - carries no information,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0,-,DROP_NON_PREDICTIVE
+hardship_flag,Whether the borrower was put on a hardship plan,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+disbursement_method,"How the money was paid out (cash, or direct to creditors)",DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
+debt_settlement_flag,Whether they settled the debt for less than owed,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0,-,DROP_LEAKAGE
