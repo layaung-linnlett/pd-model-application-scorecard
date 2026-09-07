@@ -14,9 +14,9 @@ user explicitly says "continue".
 
 ## Current stage
 
-**Stage 6d — Data-quality decision log COMPLETE. Outlier question CLOSED.**
-Next: `class_weight='balanced'` (must be tried before any SMOTE), then Stage 7
-evaluation. Baseline itself is still awaiting explicit user approval.
+**BASELINE APPROVED by the user 2026-09-07.** This unlocks the later stages.
+Now on Stage 7 — `class_weight='balanced'`, which must be tried BEFORE any SMOTE,
+and before any Random Forest / XGBoost.
 
 `notebooks/01_walkthrough.ipynb` reproduces every stage so far with live output.
 Regenerate it with:
@@ -79,6 +79,9 @@ right-censoring in this cohort.
 | 2026-09-07 | Split 60/20/20 stratified, `random_state=42`. Split done BEFORE any cleaning, to prevent preprocessing leakage |
 | 2026-09-07 | Drop 14 Dec-2015 bureau columns (availability is a date stamp, not a borrower attribute). Features 78 -> **64** |
 | 2026-09-07 | Missing-data policy approved: flag + train-median for numerics, "Unknown" category for `emp_length`, fills learned on train only |
+| 2026-09-07 | Drop 3 direct age proxies after a pre-registered test (commit 5c060df). Features 64 -> 61 |
+| 2026-09-07 | Reject percentile capping; clear 295 impossible values to missing instead |
+| 2026-09-07 | **BASELINE LOGISTIC REGRESSION APPROVED.** 61 features, ROC-AUC 0.6976, 971 of 6,326 defaulters caught at 5% review capacity |
 
 ## Pending (not started)
 
@@ -90,9 +93,11 @@ right-censoring in this cohort.
 - [ ] Stage 6 — Logistic regression baseline + coefficient walkthrough  **GATE**
       NOTE: 78 features is too many to walk through one at a time. Agree a smaller
       core set with the user before the walkthrough.
-- [ ] Stage 7 — Evaluation: confusion matrix, precision, recall, ROC-AUC, KS, Gini  **GATE**
-- [ ] Stage 8 — Later models (only after baseline approved; `class_weight='balanced'` before SMOTE)  **GATE**
-- [ ] Stage 9 — README: business framing, leakage checklist, missing-data policy,
+- [x] Stage 6 — Logistic regression baseline — **APPROVED 2026-09-07**
+- [ ] Stage 7 — `class_weight='balanced'`  **IN PROGRESS**
+- [ ] Stage 8 — Evaluation: confusion matrix, precision, recall, ROC-AUC, KS, Gini  **GATE**
+- [ ] Stage 9 — Later models (SMOTE only if class_weight proves insufficient; then trees)  **GATE**
+- [ ] Stage 10 — README: business framing, leakage checklist, missing-data policy,
       Responsible-use and limitations (FCA CONC 5.2A, UK GDPR Art. 22, Equality Act 2010)
 
 
