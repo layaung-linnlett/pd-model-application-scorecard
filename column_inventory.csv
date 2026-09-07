@@ -1,0 +1,152 @@
+column,status,why,pct_blank,what_we_do,group
+mths_since_last_record,KEEP,Credit-bureau fact known when they applied.,81.61,"add a '_missing' flag, then fill with the training median",BUREAU_CORE
+mths_since_recent_bc_dlq,KEEP,Credit-bureau fact known when they applied.,74.32,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+mths_since_last_major_derog,KEEP,Credit-bureau fact known when they applied.,70.97,"add a '_missing' flag, then fill with the training median",BUREAU_CORE
+mths_since_recent_revol_delinq,KEEP,Credit-bureau fact known when they applied.,63.84,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+mths_since_last_delinq,KEEP,Credit-bureau fact known when they applied.,47.78,"add a '_missing' flag, then fill with the training median",BUREAU_CORE
+mths_since_recent_inq,KEEP,Credit-bureau fact known when they applied.,10.53,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+emp_length,KEEP,Stated by the borrower on the application form.,6.08,blank becomes an 'Unknown' category,APPLICATION_STATED
+num_tl_120dpd_2m,KEEP,Credit-bureau fact known when they applied.,4.75,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+mo_sin_old_il_acct,KEEP,Credit-bureau fact known when they applied.,2.8,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+bc_util,KEEP,Credit-bureau fact known when they applied.,1.06,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+percent_bc_gt_75,KEEP,Credit-bureau fact known when they applied.,1.04,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+bc_open_to_buy,KEEP,Credit-bureau fact known when they applied.,1.01,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+mths_since_recent_bc,KEEP,Credit-bureau fact known when they applied.,0.96,"add a '_missing' flag, then fill with the training median",BUREAU_EXTENDED
+revol_util,KEEP,Credit-bureau fact known when they applied.,0.05,fill with the training median (too few blanks to flag),BUREAU_CORE
+dti,KEEP,Stated by the borrower on the application form.,0.01,fill with the training median (too few blanks to flag),APPLICATION_STATED
+loan_amnt,KEEP,Stated by the borrower on the application form.,0.0,use as-is (nothing missing),APPLICATION_STATED
+term,KEEP,Stated by the borrower on the application form.,0.0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+home_ownership,KEEP,Stated by the borrower on the application form.,0.0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+annual_inc,KEEP,Stated by the borrower on the application form.,0.0,use as-is (nothing missing),APPLICATION_STATED
+verification_status,KEEP,Stated by the borrower on the application form.,0.0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+purpose,KEEP,Stated by the borrower on the application form.,0.0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+delinq_2yrs,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+earliest_cr_line,KEEP,Credit-bureau fact known when they applied.,0.0,TO DO: convert date to credit-history length in months,BUREAU_CORE
+fico_range_low,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+fico_range_high,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+inq_last_6mths,KEEP,Credit-bureau fact known when they applied.,0.0,fill with the training median (too few blanks to flag),BUREAU_CORE
+open_acc,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+pub_rec,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+revol_bal,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+total_acc,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+collections_12_mths_ex_med,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+application_type,KEEP,Stated by the borrower on the application form.,0.0,one-hot encode (text -> columns of 0/1),APPLICATION_STATED
+acc_now_delinq,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+tot_coll_amt,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+tot_cur_bal,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+total_rev_hi_lim,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+acc_open_past_24mths,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+avg_cur_bal,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+chargeoff_within_12_mths,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+delinq_amnt,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+mo_sin_old_rev_tl_op,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+mo_sin_rcnt_rev_tl_op,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+mo_sin_rcnt_tl,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+mort_acc,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_accts_ever_120_pd,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_actv_bc_tl,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_actv_rev_tl,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_bc_sats,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_bc_tl,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_il_tl,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_op_rev_tl,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_rev_accts,KEEP,Credit-bureau fact known when they applied.,0.0,fill with the training median (too few blanks to flag),BUREAU_EXTENDED
+num_rev_tl_bal_gt_0,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_sats,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_tl_30dpd,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_tl_90g_dpd_24m,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+num_tl_op_past_12m,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+pct_tl_nvr_dlq,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+pub_rec_bankruptcies,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+tax_liens,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_CORE
+tot_hi_cred_lim,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+total_bal_ex_mort,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+total_bc_limit,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+total_il_high_credit_limit,KEEP,Credit-bureau fact known when they applied.,0.0,use as-is (nothing missing),BUREAU_EXTENDED
+last_pymnt_d,USED FOR TARGET,Used to build the target. Never given to the model.,0.09,"builds the target, then discarded",LABEL_SOURCE
+issue_d,USED FOR TARGET,Used to build the target. Never given to the model.,0.0,"builds the target, then discarded",LABEL_SOURCE
+loan_status,USED FOR TARGET,Used to build the target. Never given to the model.,0.0,"builds the target, then discarded",LABEL_SOURCE
+member_id,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",100.0,-,DROP_NON_PREDICTIVE
+revol_bal_joint,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_fico_range_low,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_fico_range_high,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_earliest_cr_line,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_inq_last_6mths,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_mort_acc,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_open_acc,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_revol_util,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_open_act_il,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_num_rev_accts,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_chargeoff_within_12_mths,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_collections_12_mths_ex_med,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+sec_app_mths_since_last_major_derog,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",100.0,-,DROP_JOINT_SPARSE
+desc,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",99.99,-,DROP_NON_PREDICTIVE
+orig_projected_additional_accrued_interest,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.35,-,DROP_LEAKAGE
+hardship_type,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_reason,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_status,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+deferral_term,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_amount,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_start_date,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_end_date,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+payment_plan_start_date,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_length,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_dpd,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_loan_status,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_payoff_balance_amount,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+hardship_last_payment_amount,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",99.17,-,DROP_LEAKAGE
+annual_inc_joint,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",98.91,-,DROP_JOINT_SPARSE
+dti_joint,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",98.91,-,DROP_JOINT_SPARSE
+verification_status_joint,DROP,"Only filled in for joint applications, which are rare here. Almost always empty.",98.91,-,DROP_JOINT_SPARSE
+debt_settlement_flag_date,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_status,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_date,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_amount,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_percentage,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+settlement_term,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",97.32,-,DROP_LEAKAGE
+next_pymnt_d,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",78.16,-,DROP_LEAKAGE
+il_util,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",53.76,-,DROP_TIME_VARYING_AVAILABILITY
+mths_since_rcnt_il,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",48.16,-,DROP_TIME_VARYING_AVAILABILITY
+open_acc_6m,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_act_il,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_il_12m,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_il_24m,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+total_bal_il,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_rv_12m,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+open_rv_24m,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+max_bal_bc,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+all_util,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+inq_fi,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+total_cu_tl,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+inq_last_12m,DROP,"Only collected from Dec 2015. Tells you WHEN the loan was issued, not who the borrower is.",46.73,-,DROP_TIME_VARYING_AVAILABILITY
+emp_title,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",6.12,-,DROP_NON_PREDICTIVE
+title,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",2.72,-,DROP_NON_PREDICTIVE
+id,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0.0,-,DROP_NON_PREDICTIVE
+funded_amnt,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0.0,-,DROP_NON_PREDICTIVE
+funded_amnt_inv,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0.0,-,DROP_NON_PREDICTIVE
+int_rate,DROP,Lending Club's own risk score (or derived from it). Using it means copying their homework.,0.0,-,DROP_LENDER_JUDGEMENT
+installment,DROP,Lending Club's own risk score (or derived from it). Using it means copying their homework.,0.0,-,DROP_LENDER_JUDGEMENT
+grade,DROP,Lending Club's own risk score (or derived from it). Using it means copying their homework.,0.0,-,DROP_LENDER_JUDGEMENT
+sub_grade,DROP,Lending Club's own risk score (or derived from it). Using it means copying their homework.,0.0,-,DROP_LENDER_JUDGEMENT
+pymnt_plan,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+url,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0.0,-,DROP_NON_PREDICTIVE
+zip_code,DROP,Location. Stands in for protected characteristics (Equality Act 2010).,0.0,-,DROP_FAIRNESS_PROXY
+addr_state,DROP,Location. Stands in for protected characteristics (Equality Act 2010).,0.0,-,DROP_FAIRNESS_PROXY
+initial_list_status,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+out_prncp,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+out_prncp_inv,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+total_pymnt,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+total_pymnt_inv,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+total_rec_prncp,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+total_rec_int,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+total_rec_late_fee,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+recoveries,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+collection_recovery_fee,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+last_pymnt_amnt,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+last_credit_pull_d,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+last_fico_range_high,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+last_fico_range_low,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+policy_code,DROP,"Identifier, free text, constant, or a duplicate of a column we already keep.",0.0,-,DROP_NON_PREDICTIVE
+hardship_flag,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+disbursement_method,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
+debt_settlement_flag,DROP,"LEAKAGE: recorded after the loan was granted, so it does not exist when a real applicant applies.",0.0,-,DROP_LEAKAGE
