@@ -24,6 +24,8 @@ nbformat==5.11.1
 nbconvert==7.17.1
 ipykernel==7.1.0
 
-# --- Deferred: not installed until the logistic-regression baseline is approved ---
+# Tested and rejected, but kept installed so src/08_smote.py stays runnable
+imbalanced-learn==0.14.2   # SMOTE: rejected 2026-09-09, see docs/interview_notes.md
+
+# --- Deferred: not yet needed ---
 # xgboost==3.2.0          # pinned: 3.3.x needs Python 3.12+
-# imbalanced-learn==0.14.2  # SMOTE — only if class_weight='balanced' proves insufficient

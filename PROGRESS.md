@@ -12,9 +12,11 @@ Everything is committed and the working tree is clean.
 interpreting each before explanation. `src/07_evaluate.py` +
 `outputs/figures/baseline_evaluation.png`.
 
-**Next: SMOTE.** Untested. Expectation after the class_weight result is that it will not
-help ranking either, but test it with a PRE-REGISTERED bar rather than assuming - same
-discipline as commit 5c060df. After that: tree models, then the README.
+**Stage 9 COMPLETE 2026-09-09 — SMOTE tested and REJECTED.** Baseline stands.
+
+**Next: tree models (Random Forest / XGBoost), then the README.** Both are now unlocked
+- the baseline was approved and both rebalancing approaches have been tried first, as
+the user required. Pre-register a bar for the tree models too.
 
 **Test pile is still sealed** and must stay so until model selection is finished.
 
@@ -613,4 +615,39 @@ bought, not given away.
 **Prior:** `class_weight='balanced'` moved the ranking by 0.7% (Spearman 0.9934). SMOTE
 is a more invasive form of the same rebalancing idea, so the expectation is that it will
 not help either. Recorded here so the prior is on the record rather than claimed
-afterwards. Result to follow.
+afterwards.
+
+### RESULT — SMOTE REJECTED 2026-09-09
+
+`src/08_smote.py`. SMOTE applied inside an imblearn Pipeline so it runs only during
+`fit` and never touches validation, and after preprocessing since it interpolates
+between rows and needs numeric input.
+
+| model | defaulters caught @10% | recall | ROC-AUC | fit time |
+|---|---|---|---|---|
+| baseline | 1,678 | 26.53% | 0.6976 | 2.8s |
+| SMOTE | **1,637** | 25.88% | 0.6914 | 7.2s |
+
+**-41 defaulters (-2.44%), against a bar of +50.** The difference sits right at the
++/-41 noise boundary, so the honest statement is "no better, possibly slightly worse".
+Either way it fails the pre-registered bar. ROC-AUC also fell, 0.6976 -> 0.6914.
+
+**Not the same story as class_weight, and worth writing up.**
+
+| | rank correlation | same people reviewed |
+|---|---|---|
+| class_weight | 0.9934 | 91.4% |
+| SMOTE | 0.9629 | 79.8% |
+
+Class weighting shouted louder about the same people. SMOTE genuinely REORDERED the
+queue - a fifth of the review list changed - and reordered it slightly worse. Plausible
+reason: synthetic defaulters are interpolations between real ones, so they occupy
+regions of feature space where no borrower actually applied. The model learns a boundary
+partly shaped by data that does not exist.
+
+SMOTE also inflated the alarm level the same way class weighting did (mean predicted
+probability 3.69% -> 43.43%) while the decision rule still uses only rank.
+
+**DECISION: reject. Baseline stands unchanged.** Both rebalancing approaches have now
+been tried and rejected on evidence, which is what the user's original rule required
+before moving to tree models.

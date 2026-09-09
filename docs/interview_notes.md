@@ -132,6 +132,40 @@ same people, Spearman rank correlation **0.9934**.
 
 ---
 
+## 5b. SMOTE — TESTED, REJECTED
+
+SMOTE invents synthetic defaulters (blends of two similar real ones) until the classes
+balance, so the model trains partly on borrowers who never applied.
+
+```
+                  caught @10%   ROC-AUC
+baseline                1,678    0.6976
+SMOTE                   1,637    0.6914     -41, against a +50 bar
+```
+
+**Different failure from class weighting, and that's the interesting bit:**
+
+```
+                rank correlation    same people reviewed
+class_weight              0.9934                   91.4%
+SMOTE                     0.9629                   79.8%
+```
+
+Class weighting shouted louder about the same people. SMOTE genuinely **reordered** the
+queue — a fifth of the review list changed — and reordered it slightly worse.
+
+**Say it like this:**
+> "The synthetic defaulters are interpolations between real ones, so they sit in regions
+> of the feature space where nobody actually applied. The model ends up learning a
+> boundary partly shaped by borrowers who don't exist. On my data it cost about 41
+> defaulters and 0.006 of AUC, so it didn't clear the bar I'd set beforehand."
+
+**Applied correctly** — inside an imblearn Pipeline so it runs only during `fit`, and
+after preprocessing since it interpolates and needs numeric input. Resampling validation
+would mean scoring the model on invented people.
+
+---
+
 ## 6. Random variation — the √n rule
 
 A count moves around by chance even when nothing changed. Flip a coin 100 times and
@@ -369,7 +403,7 @@ Worth more than a longer list of things used.
 | percentile capping (1st/99th) | would flatten `dti` 39-100, the strongest risk marker | rejected |
 | `credit_history_months` | no measurable gain; proxies for age | dropped |
 | `class_weight='balanced'` | 0.9934 rank correlation with baseline | rejected |
-| SMOTE | *pending* | *pending* |
+| SMOTE | -41 defaulters, ROC-AUC 0.6976 -> 0.6914 | rejected |
 
 **Say it like this:**
 > "I can tell you what I tried and didn't keep, and why, with numbers. Each of those
