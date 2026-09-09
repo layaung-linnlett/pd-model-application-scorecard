@@ -8,9 +8,11 @@
 
 Everything is committed and the working tree is clean.
 
-**Next up: Stage 8 — evaluation.** Confusion matrix, precision, recall, ROC-AUC, KS
-statistic, Gini. Per the user's instruction, ask them to interpret each metric BEFORE
-explaining it. Nothing built yet.
+**Stage 8 — evaluation IN PROGRESS.** Confusion matrix concept and RECALL are done.
+Next metric: PRECISION. Per the user's instruction, ask them to interpret each metric
+BEFORE explaining it. Remaining after precision: ROC-AUC, KS statistic, Gini.
+
+**Operating point is now 10%** (`cfg.REVIEW_CAPACITY`), not the 5% used earlier.
 
 SMOTE is still untested. Expectation after the class_weight result is that it will not
 help ranking either, but that should be tested with a pre-registered bar, not assumed.
@@ -105,6 +107,7 @@ right-censoring in this cohort.
 | 2026-09-07 | Reject percentile capping; clear 295 impossible values to missing instead |
 | 2026-09-07 | **BASELINE LOGISTIC REGRESSION APPROVED.** 61 features, ROC-AUC 0.6976, 971 of 6,326 defaulters caught at 5% review capacity |
 | 2026-09-09 | `class_weight='balanced'` tested and **rejected** — same ranking, no gain. Keep the simpler model |
+| 2026-09-09 | Operating point set to **10% review capacity** (`cfg.REVIEW_CAPACITY`), stated as an assumption, with the full curve reported alongside |
 
 ## Pending (not started)
 
@@ -512,3 +515,41 @@ the threshold - do not reweight the model.
 rebalancing idea. Since weighting moved the ranking by 0.7%, the prior is that SMOTE
 will not help either. Test it with a pre-registered bar rather than assuming - the same
 discipline used for `credit_history_months` at commit 5c060df.
+
+
+---
+
+### Stage 8 — Evaluation — IN PROGRESS from 2026-09-09
+
+**Operating point decided: 10% review capacity.** Earlier numbers in this file used 5%,
+which was Claude's arbitrary pick and was never justified. 10% is equally an assumption,
+but it is now stated as one in `cfg.REVIEW_CAPACITY` and the full curve is reported
+beside it, so a reader sees the trade-off rather than a number pulled from nowhere.
+
+| Review capacity | People reviewed | Defaulters caught | Recall | vs random |
+|---|---|---|---|---|
+| 1% | 1,711 | 241 | 3.8% | 3.81x |
+| 5% | 8,555 | 971 | 15.3% | 3.07x |
+| **10%** | **17,110** | **1,678** | **26.5%** | **2.65x** |
+| 20% | 34,220 | 2,778 | 43.9% | 2.20x |
+| 50% | 85,550 | 4,814 | 76.1% | 1.52x |
+| 100% | 171,101 | 6,326 | 100.0% | 1.00x |
+
+**Two points from this table for the README:**
+- The model's edge is largest at the top (3.8x at 1%, falling to 1.5x at 50%). Ranking
+  is worth most exactly when capacity is tightest.
+- At 10% capacity, **73.5% of defaulters are still approved without review**. State this
+  plainly. The model reduces losses; it does not prevent them.
+
+**Metrics covered so far:**
+- Confusion matrix (concept): four outcomes, two of which are mistakes. The user
+  correctly identified that a missed defaulter (~£7,000) costs far more than a wasted
+  review (~£40) - roughly 175:1 - which is why accuracy is useless here.
+- **Recall** at 10% = 26.5%. Meaningless in isolation; the comparison that gives it
+  meaning is random selection, which would catch 633.
+
+**Still to cover:** precision, ROC-AUC, KS statistic, Gini.
+
+**Teaching note.** The user got lost when three ideas were stacked in one message
+(capacity is a choice / edge is biggest at the top / most defaulters still slip through).
+Splitting them into three short messages with a check after each worked. Keep doing that.

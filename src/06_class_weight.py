@@ -44,7 +44,7 @@ import config as cfg
 ROOT = Path(__file__).resolve().parents[1]
 INTERIM = ROOT / "data" / "interim"
 TARGET = "default_within_12_months"
-CAPACITY = 0.05          # share of applicants a lender can hand-review
+CAPACITY = cfg.REVIEW_CAPACITY   # see config: a stated assumption, not a fact
 RANDOM_STATE = 42
 
 

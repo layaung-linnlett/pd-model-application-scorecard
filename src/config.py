@@ -234,3 +234,31 @@ DATA_QUALITY_LIMITS = {
     "pub_rec": {"max": 20},
     "tax_liens": {"max": 20},
 }
+
+
+# ---------------------------------------------------------------------------
+# Operating point (set 2026-09-09).
+#
+# The model outputs a RANKED LIST of all applicants, riskiest first. It does not
+# decide who to review - the lender's staffing does. This constant is how far
+# down that list we read.
+#
+# 10% is an ASSUMPTION, not a fact about any real lender. It is stated here so
+# every script uses the same figure and so the assumption is visible rather than
+# buried. The full curve is reported alongside it in the README, because the
+# trade-off is more informative than any single number:
+#
+#     review  1%  ->  catch  3.8% of defaulters   (3.8x better than random)
+#     review  5%  ->  catch 15.3%                 (3.1x)
+#     review 10%  ->  catch 26.5%                 (2.7x)   <- stated operating point
+#     review 20%  ->  catch 43.9%                 (2.2x)
+#     review 50%  ->  catch 76.1%                 (1.5x)
+#
+# A real deployment would set this from the cost of a review (~1 analyst hour)
+# against the cost of a default (a ~$14k loan, partly recovered). That arithmetic
+# needs inputs this dataset does not contain - how often review actually prevents
+# a bad loan, and what is lost by wrongly rejecting a good applicant - so it is
+# not attempted here.
+# ---------------------------------------------------------------------------
+
+REVIEW_CAPACITY = 0.10
