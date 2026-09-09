@@ -8,11 +8,15 @@
 
 Everything is committed and the working tree is clean.
 
-**Stage 8 — evaluation IN PROGRESS.** Confusion matrix concept and RECALL are done.
-Next metric: PRECISION. Per the user's instruction, ask them to interpret each metric
-BEFORE explaining it. Remaining after precision: ROC-AUC, KS statistic, Gini.
+**Stage 8 — evaluation COMPLETE 2026-09-09.** All six metrics covered with the user
+interpreting each before explanation. `src/07_evaluate.py` +
+`outputs/figures/baseline_evaluation.png`.
 
-**Operating point is now 10%** (`cfg.REVIEW_CAPACITY`), not the 5% used earlier.
+**Next: SMOTE.** Untested. Expectation after the class_weight result is that it will not
+help ranking either, but test it with a PRE-REGISTERED bar rather than assuming - same
+discipline as commit 5c060df. After that: tree models, then the README.
+
+**Test pile is still sealed** and must stay so until model selection is finished.
 
 SMOTE is still untested. Expectation after the class_weight result is that it will not
 help ranking either, but that should be tested with a pre-registered bar, not assumed.
@@ -541,14 +545,38 @@ beside it, so a reader sees the trade-off rather than a number pulled from nowhe
 - At 10% capacity, **73.5% of defaulters are still approved without review**. State this
   plainly. The model reduces losses; it does not prevent them.
 
-**Metrics covered so far:**
-- Confusion matrix (concept): four outcomes, two of which are mistakes. The user
-  correctly identified that a missed defaulter (~£7,000) costs far more than a wasted
-  review (~£40) - roughly 175:1 - which is why accuracy is useless here.
-- **Recall** at 10% = 26.5%. Meaningless in isolation; the comparison that gives it
-  meaning is random selection, which would catch 633.
+**All metrics COMPLETE 2026-09-09.** `src/07_evaluate.py`, figure at
+`outputs/figures/baseline_evaluation.png`. Evaluated on VALIDATION; test stays sealed.
 
-**Still to cover:** precision, ROC-AUC, KS statistic, Gini.
+| Metric | Value | Plain meaning |
+|---|---|---|
+| Recall @10% | 26.53% | of 6,326 defaulters, 1,678 caught |
+| Precision @10% | 9.81% | 1 useful file in 10, vs 1 in 27 at random |
+| ROC-AUC | 0.6976 | pick a defaulter and a non-defaulter; 70% of the time the defaulter scores higher |
+| Gini | 0.3952 | = 2*AUC-1, rescaled so useless = 0. The industry convention |
+| KS | 29.0 | widest separation, occurring 34.4% down the list |
+| Lift @10% | 2.65x | vs random selection |
+
+Confusion matrix at 10%: TP 1,678 / FP 15,432 / FN 4,648 / TN 149,343.
+
+**Accuracy is deliberately excluded.** "Never defaults" scores 96.3% and is worthless.
+
+**Points the user reasoned out and should be able to defend:**
+- A missed defaulter (~£7,000) costs ~175x a wasted review (~£40). That asymmetry is
+  why low precision is acceptable here and would not be in, say, medicine.
+- Recall and precision come from the SAME cell (1,678), divided by the column vs the row.
+- AUC's floor is 0.50, not 0 - a random-scoring model wins half its pairwise
+  comparisons. Below 0.50 means systematically wrong, which is usable upside down.
+- 0.70 AUC is near the ceiling for application-only data; ~0.85 on this dataset would
+  imply leakage.
+- **KS peaks at 34.4% but the operating point is 10%.** KS describes the model, not the
+  staffing. Setting capacity from where a statistic peaks would let a metric make a
+  business decision. The user asked exactly this ("so should i use 40%?") and the
+  distinction was drawn explicitly.
+
+**Honest limitation for the README:** at 10% capacity, 4,648 defaulters (73.5%) are
+approved with no review. The model reduces losses; it does not prevent them. The
+score-distribution panel of the figure shows why - the two groups overlap heavily.
 
 **Teaching note.** The user got lost when three ideas were stacked in one message
 (capacity is a choice / edge is biggest at the top / most defaulters still slip through).
