@@ -4,21 +4,16 @@
 
 ---
 
-## ⏸  RESUME HERE  (paused 2026-09-07)
+## ⏸  RESUME HERE  (updated 2026-09-09)
 
-Everything is committed and the working tree is clean. Nothing is half-finished.
+Everything is committed and the working tree is clean.
 
-**The one open question, asked but not answered:**
+**Next up: Stage 8 — evaluation.** Confusion matrix, precision, recall, ROC-AUC, KS
+statistic, Gini. Per the user's instruction, ask them to interpret each metric BEFORE
+explaining it. Nothing built yet.
 
-> With `class_weight='balanced'`, does the number of real defaulters caught in the
-> riskiest 5% go up a lot, up a little, or stay about the same?
-> (Currently 971 of 6,326.)
->
-> Hint given: does making defaulters count for more change WHO the model thinks is
-> riskiest, or just how worried it is about everyone?
-
-The user should answer that prediction first; then write and run the comparison.
-Nothing has been built for it yet.
+SMOTE is still untested. Expectation after the class_weight result is that it will not
+help ranking either, but that should be tested with a pre-registered bar, not assumed.
 
 **Working style reminders — the user asked for these explicitly:**
 - Cassie Kozyrkov-style: ask a question they can answer from ordinary life BEFORE
@@ -42,9 +37,8 @@ user explicitly says "continue".
 
 ## Current stage
 
-**BASELINE APPROVED by the user 2026-09-07.** This unlocks the later stages.
-Now on Stage 7 — `class_weight='balanced'`, which must be tried BEFORE any SMOTE,
-and before any Random Forest / XGBoost.
+**Stage 7 COMPLETE 2026-09-09 — `class_weight='balanced'` tested and REJECTED.**
+Baseline stands unchanged. Next: Stage 8 evaluation.
 
 `notebooks/01_walkthrough.ipynb` reproduces every stage so far with live output.
 Regenerate it with:
@@ -110,6 +104,7 @@ right-censoring in this cohort.
 | 2026-09-07 | Drop 3 direct age proxies after a pre-registered test (commit 5c060df). Features 64 -> 61 |
 | 2026-09-07 | Reject percentile capping; clear 295 impossible values to missing instead |
 | 2026-09-07 | **BASELINE LOGISTIC REGRESSION APPROVED.** 61 features, ROC-AUC 0.6976, 971 of 6,326 defaulters caught at 5% review capacity |
+| 2026-09-09 | `class_weight='balanced'` tested and **rejected** — same ranking, no gain. Keep the simpler model |
 
 ## Pending (not started)
 
@@ -122,7 +117,7 @@ right-censoring in this cohort.
       NOTE: 78 features is too many to walk through one at a time. Agree a smaller
       core set with the user before the walkthrough.
 - [x] Stage 6 — Logistic regression baseline — **APPROVED 2026-09-07**
-- [ ] Stage 7 — `class_weight='balanced'`  **IN PROGRESS**
+- [x] Stage 7 — `class_weight='balanced'` tested, rejected — COMPLETE 2026-09-09
 - [ ] Stage 8 — Evaluation: confusion matrix, precision, recall, ROC-AUC, KS, Gini  **GATE**
 - [ ] Stage 9 — Later models (SMOTE only if class_weight proves insufficient; then trees)  **GATE**
 - [ ] Stage 10 — README: business framing, leakage checklist, missing-data policy,
@@ -471,3 +466,49 @@ total_rev_hi_lim. These are the borrowers manual review exists to find.
 annual_inc (131), revol_bal (119) still carry large leverage. Retained because each
 carries directional signal. A production scorecard would bin variables
 (weight-of-evidence) rather than cap. Noted as future work, not done here.
+
+
+---
+
+### Stage 7 — class_weight='balanced' — TESTED AND REJECTED 2026-09-09
+
+`src/06_class_weight.py`. Only one thing differs between the two models:
+`class_weight="balanced"` on the LogisticRegression. Same features, same split, same
+preprocessing.
+
+**What changed — a lot:**
+
+| | flagged at 0.5 | mean predicted probability |
+|---|---|---|
+| baseline | 2 | 3.69% |
+| balanced | 64,304 | 44.64% |
+
+**What did not change — anything that matters:**
+
+| | defaulters caught in riskiest 5% | recall | ROC-AUC |
+|---|---|---|---|
+| baseline | 971 | 15.35% | 0.6976 |
+| balanced | 966 | 15.27% | 0.6982 |
+
+Difference -5, well inside the +/-31 expected from chance.
+
+**Why:** it is the same ranking. Of the 8,555 borrowers each model sends to review,
+**7,817 are the same people (91.4% overlap)**, and the Spearman rank correlation
+between the two sets of scores is **0.9934**. Class weighting changes how worried the
+model is, not who it worries about. For a linear model it essentially shifts the
+intercept, which moves every probability without reordering anyone.
+
+**DECISION: reject. Keep the simpler baseline.** When two options perform the same,
+take the simpler one - it is easier to explain and has fewer moving parts. Complexity
+has to earn its place.
+
+**Wider lesson worth putting in the README.** The "only 2 borrowers flagged" result was
+never a failure. It was an artefact of judging the model at a 0.5 cut-off that nobody
+would use. The business rule is "review the riskiest 5%", which depends only on the
+ORDER of the scores, never on their absolute size. If more people need flagging, move
+the threshold - do not reweight the model.
+
+**Implication for SMOTE (still untested).** SMOTE is a more invasive form of the same
+rebalancing idea. Since weighting moved the ranking by 0.7%, the prior is that SMOTE
+will not help either. Test it with a pre-registered bar rather than assuming - the same
+discipline used for `credit_history_months` at commit 5c060df.
