@@ -581,3 +581,36 @@ score-distribution panel of the figure shows why - the two groups overlap heavil
 **Teaching note.** The user got lost when three ideas were stacked in one message
 (capacity is a choice / edge is biggest at the top / most defaulters still slip through).
 Splitting them into three short messages with a check after each worked. Keep doing that.
+
+
+---
+
+### Stage 9 — PRE-REGISTERED BAR FOR SMOTE, set 2026-09-09 BEFORE the test was run
+
+**Question:** does SMOTE earn a place in the pipeline?
+
+**What SMOTE does.** The training data has 26 non-defaulters per defaulter. SMOTE
+invents synthetic defaulters - taking a real defaulter, finding a similar one, and
+creating a fake borrower between them - until the classes are balanced. The model then
+trains partly on borrowers who never applied for a loan.
+
+**The criterion, fixed before any result was seen:**
+
+> Keep SMOTE only if it catches at least **1,728 defaulters** at the 10% operating
+> point on validation, i.e. **+50 (about +3%)** on the baseline's 1,678.
+
+**Why +50 and not +17 (the 1% bar used for `credit_history_months`).** A count of ~1,678
+carries roughly sqrt(1678) = +/-41 of sampling noise. A 1% bar sits INSIDE that noise, so
+it could not distinguish a real gain from a luckier validation split. +50 clears it.
+The bar is deliberately conservative: comparing two models on the same validation pile
+is a paired comparison, so true noise on the difference is smaller than +/-41.
+
+**Second reason for a higher bar:** SMOTE carries a cost that is not accuracy. It adds a
+dependency, an extra pipeline stage, and a claim that has to be defended -
+"the model was trained partly on borrowers who do not exist". That should have to be
+bought, not given away.
+
+**Prior:** `class_weight='balanced'` moved the ranking by 0.7% (Spearman 0.9934). SMOTE
+is a more invasive form of the same rebalancing idea, so the expectation is that it will
+not help either. Recorded here so the prior is on the record rather than claimed
+afterwards. Result to follow.
