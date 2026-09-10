@@ -767,3 +767,47 @@ collecting a characteristic does not prevent unequal outcomes, it only prevents 
 CHECKING for them. Fairness testing requires lawfully collected demographic data.
 
 **Finding 3 — `verification_status` runs backwards.** Led to the ablation above.
+
+
+---
+
+### Stage 11 — PRE-REGISTERED BANDS FOR TREE MODELS, set 2026-09-10 BEFORE the test
+
+**Why trees might actually help, where the last three did not.** `class_weight`, SMOTE
+and rebalancing generally were solving IMBALANCE - a problem the ranking-based decision
+rule does not have. Trees solve a real limitation: logistic regression adds weights and
+therefore cannot express "it depends". It has one weight for `loan_amnt` and one for
+`annual_inc`; it cannot say "loan size matters more when income is low". Trees can,
+because each split is conditional on the one above. Lending is full of "it depends", so
+this is the first technique tested with a genuine mechanism for improvement.
+
+**The cost, which is NOT accuracy.** Logistic regression gives a coefficient per feature,
+so a rejection can be explained per applicant. A forest of hundreds of trees gives a
+global importance ranking, not a clean per-applicant reason. That is the **UK GDPR
+Article 22** issue in the project's own responsible-use section. It is a heavier cost
+than SMOTE's, so the bar must be higher - fairness between tests means matching the bar
+to what each option COSTS, not reusing the same number.
+
+**Three bands, fixed before any result was seen.** Baseline is 1,663 defaulters caught
+at 10% capacity (60-feature model, after `verification_status` was dropped).
+
+| Result | Verdict |
+|---|---|
+| under +50 (1,713) | REJECT. Inside the +/-41 sampling noise. |
+| +50 to +250 | Real but modest. **Keep logistic regression as the model**, report the tree as a CHALLENGER showing what accuracy exists at a cost we chose not to pay. |
+| over +250 (~15%, i.e. 1,913+) | Large enough that giving up per-applicant explanations becomes a genuine argument. Revisit the deployment choice. |
+
+The floor (+50) is principled: ~+/-41 is measurable sampling noise. Everything above it
+is a value judgement about how much explainability is worth, and is stated as such
+rather than dressed up as arithmetic.
+
+**The middle band mirrors real practice.** Lenders commonly build a GBM challenger
+alongside the scorecard to see what accuracy is being left on the table, and still deploy
+the scorecard, because explainability obligations outrank a few points of Gini.
+
+**Honest methodology note.** XGBoost uses early stopping, which needs a held-out set. If
+it early-stopped on the validation pile, that pile would have influenced the model and
+the comparison would flatter XGBoost. So 15% is carved out of TRAIN for early stopping
+and validation stays clean. Random Forest needs no equivalent.
+
+Result to follow.
