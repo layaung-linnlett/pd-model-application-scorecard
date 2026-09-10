@@ -651,3 +651,46 @@ probability 3.69% -> 43.43%) while the decision rule still uses only rank.
 **DECISION: reject. Baseline stands unchanged.** Both rebalancing approaches have now
 been tried and rejected on evidence, which is what the user's original rule required
 before moving to tree models.
+
+
+---
+
+### Stage 10b — PRE-REGISTERED BAR FOR `verification_status`, set 2026-09-10 BEFORE the test
+
+**The finding that prompted this.** `src/09_segments.py` showed the relationship runs
+BACKWARDS from intuition:
+
+| verification_status | base default rate | recall | flagged |
+|---|---|---|---|
+| Verified | 4.97% | 40.6% | 20.5% |
+| Source Verified | 3.72% | 21.7% | 8.2% |
+| Not Verified | **2.34%** | 7.2% | 1.8% |
+
+Borrowers whose income Lending Club CHECKED default more than twice as often as those
+it did not. Model coefficient on `verification_status_Verified` is **+0.32**, one of the
+larger weights, pointing toward default.
+
+**Explanation:** Lending Club does not verify at random - it verifies when an application
+looks doubtful. The flag records SUSPICION, not reassurance. So the column is partly
+encoding Lending Club's own operational triage rather than borrower risk.
+
+**The problem this is (and is not).** Not a fairness problem like
+`credit_history_months`. A TRANSFERABILITY problem: a lender with a different
+verification policy would see this relationship weaken or reverse. The project's framing
+is a general lender routing applicants to review, so a feature encoding one company's
+internal process undercuts that.
+
+**The criterion, fixed before any result was seen:**
+
+> Drop `verification_status` if removing it costs FEWER than 50 defaulters at the 10%
+> operating point. Keep it, and document the inversion prominently, if removing it costs
+> 50 or more.
+
+Note the burden of proof is the reverse of the `credit_history_months` test. There the
+feature had to EARN its place against a fairness cost. Here the default action is to keep
+unless removal is cheap, because the cost of keeping is milder - a confusing coefficient
+and reduced transferability, not unequal treatment of people.
+
++/-41 sampling noise applies as before, so 50 sits just outside it.
+
+Result to follow.
