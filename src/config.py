@@ -18,7 +18,7 @@ LABEL_SOURCE = [
 # Borrower-stated on the application form
 APPLICATION_STATED = [
     "loan_amnt", "term", "purpose", "application_type",
-    "emp_length", "home_ownership", "annual_inc", "verification_status",
+    "emp_length", "home_ownership", "annual_inc",
     "dti",
 ]
 
@@ -153,7 +153,7 @@ MEDIAN_FILL_ONLY = ["dti", "revol_util", "inq_last_6mths", "num_rev_accts"]
 # Text features. `emp_length` carries an informative blank -> "Unknown".
 CATEGORICAL_FEATURES = [
     "term", "purpose", "application_type", "emp_length",
-    "home_ownership", "verification_status",
+    "home_ownership",
 ]
 
 # 7. Age proxies. Dropped 2026-09-07 after a pre-registered test.
@@ -183,6 +183,24 @@ CATEGORICAL_FEATURES = [
 DROP_AGE_PROXY = [
     "earliest_cr_line", "mo_sin_old_rev_tl_op", "mo_sin_old_il_acct",
 ]
+
+# 8. The lender's own operational process. Dropped 2026-09-10 after a
+#    pre-registered test (commit 6631598).
+#
+#    `verification_status` runs BACKWARDS from intuition: borrowers whose income
+#    Lending Club checked default at 4.97%, those it did not at 2.34%. The model
+#    gave it +0.32, one of the larger weights, pointing toward default.
+#
+#    Reason: Lending Club does not verify at random - it verifies when an
+#    application looks doubtful. The flag records SUSPICION, not reassurance. So
+#    the column encodes Lending Club's triage policy rather than borrower risk,
+#    and a lender with a different policy would see it weaken or reverse.
+#
+#    Removing it cost 15 defaulters at the 10% operating point, inside the +/-41
+#    sampling noise and under the pre-registered bar of 50. Dropped: the model no
+#    longer depends on one company's internal process, and there is no
+#    counter-intuitive coefficient to explain away.
+DROP_LENDER_PROCESS = ["verification_status"]
 
 # No derived features remain now that credit_history_months is gone. The hooks
 # stay so the inventory tooling keeps working.

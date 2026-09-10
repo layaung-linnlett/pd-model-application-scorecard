@@ -15,9 +15,9 @@ applicants get manual review instead of everyone.
 ```
 855,502 Lending Club loans, originated 2015-2016
 3.70% defaulted within 12 months          26 : 1 imbalance
-61 features, all known at application time
-ROC-AUC 0.6976 · Gini 0.3952 · KS 29.0
-at 10% review capacity: 1,678 of 6,326 defaulters caught (26.5%), 2.65x random
+60 features, all known at application time
+ROC-AUC 0.6962 · Gini 0.3923 · KS 29.1
+at 10% review capacity: 1,663 of 6,326 defaulters caught (26.3%), 2.63x random
 ```
 
 ---
@@ -163,6 +163,66 @@ queue — a fifth of the review list changed — and reordered it slightly worse
 **Applied correctly** — inside an imblearn Pipeline so it runs only during `fit`, and
 after preprocessing since it interpolates and needs numeric input. Resampling validation
 would mean scoring the model on invented people.
+
+---
+
+## 5c. `verification_status` — the coefficient that ran backwards
+
+```
+                  base default rate    model coefficient
+Verified                      4.97%              +0.32  (toward default)
+Source Verified               3.72%
+Not Verified                  2.34%
+```
+
+Borrowers whose income Lending Club **checked** default more than twice as often as
+those it didn't. Backwards from intuition.
+
+**Why:** Lending Club doesn't verify at random — it verifies when an application looks
+doubtful. The flag records **suspicion, not reassurance**.
+
+**Say it like this:**
+> "It's the lender's own triage process leaking into the features — the same family of
+> problem as `grade` and `int_rate`, which I'd already dropped. A lender with a
+> different verification policy would see that relationship weaken or reverse, so the
+> model wouldn't transfer. I tested removing it: it cost 15 defaulters, inside the ±41
+> noise, so I dropped it rather than shipping a coefficient I'd have to explain away."
+
+**The general lesson:** a feature can be perfectly legitimate at application time and
+still be a bad feature, because it records **how the lender behaves** rather than how
+the borrower behaves.
+
+---
+
+## 5d. Segment analysis — the average hides things
+
+Overall recall is 26.3%. Split by segment and the model is far weaker for safe-looking
+groups:
+
+```
+credit score      base rate   recall   flagged
+under 665             4.81%    35.6%     17.5%
+over 725              2.14%     9.1%      1.7%
+```
+
+Same shape in every segment. **Not a bug** — one global ranking concentrates reviews
+where risk is concentrated. But only 1.7% of the over-725 group is ever looked at.
+
+**The fairness half:**
+
+```
+renters flagged        15.3%
+mortgage holders        5.3%     nearly 3x
+```
+
+Home ownership isn't protected, but it tracks age, wealth and often ethnicity.
+
+**Say it like this:**
+> "The same script that measures recall by segment *is* a disparate-impact audit — you
+> just swap the segment for a protected characteristic. I couldn't, because Lending Club
+> collects no demographics. Which is the point worth making: not collecting ethnicity
+> doesn't stop a model producing unequal outcomes, it only stops you checking. Fairness
+> testing needs lawfully collected demographic data."
 
 ---
 
@@ -404,6 +464,7 @@ Worth more than a longer list of things used.
 | `credit_history_months` | no measurable gain; proxies for age | dropped |
 | `class_weight='balanced'` | 0.9934 rank correlation with baseline | rejected |
 | SMOTE | -41 defaulters, ROC-AUC 0.6976 -> 0.6914 | rejected |
+| `verification_status` | costs 15 defaulters to remove — inside noise | dropped |
 
 **Say it like this:**
 > "I can tell you what I tried and didn't keep, and why, with numbers. Each of those

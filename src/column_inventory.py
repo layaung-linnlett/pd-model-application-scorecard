@@ -48,6 +48,10 @@ GROUPS = {
                        "Measures how long ago they started using credit, which "
                        "stands in for age. Removed after testing showed it "
                        "costs nothing."),
+    "DROP_LENDER_PROCESS": ("DROP",
+                            "Records Lending Club's own triage process, not the "
+                            "borrower. Would mean something different at another "
+                            "lender."),
     "DROP_FAIRNESS_PROXY": ("DROP",
                             "Location. Stands in for protected characteristics "
                             "(Equality Act 2010)."),

@@ -12,11 +12,19 @@ Everything is committed and the working tree is clean.
 interpreting each before explanation. `src/07_evaluate.py` +
 `outputs/figures/baseline_evaluation.png`.
 
-**Stage 9 COMPLETE 2026-09-09 — SMOTE tested and REJECTED.** Baseline stands.
+**Stage 10 COMPLETE 2026-09-10 — segment analysis done, `verification_status` dropped.**
+Model is now 60 features, Gini 0.3923, recall 26.29% at 10% review capacity.
 
-**Next: tree models (Random Forest / XGBoost), then the README.** Both are now unlocked
-- the baseline was approved and both rebalancing approaches have been tried first, as
-the user required. Pre-register a bar for the tree models too.
+**Next: tree models (Random Forest / XGBoost), then the README.**
+
+Bar structure agreed for the trees but NOT yet pre-registered - do that before running:
+- under +50 defaulters: reject, inside the noise
+- +50 to +250: real but modest. Keep logistic regression, report the tree as a
+  challenger showing what accuracy costs in explainability
+- over +250 (~15%): large enough to argue for giving up per-applicant explanations
+The middle band mirrors real practice - lenders often build a GBM challenger and
+still deploy the scorecard, because UK GDPR Art. 22 explainability outranks a few
+points of Gini.
 
 **Test pile is still sealed** and must stay so until model selection is finished.
 
@@ -693,4 +701,69 @@ and reduced transferability, not unequal treatment of people.
 
 +/-41 sampling noise applies as before, so 50 sits just outside it.
 
-Result to follow.
+### RESULT — DROPPED 2026-09-10
+
+`src/10_ablation.py verification_status`
+
+| model | caught @10% | recall | ROC-AUC |
+|---|---|---|---|
+| baseline (all features) | 1,678 | 26.53% | 0.6976 |
+| without `verification_status` | 1,663 | 26.29% | 0.6962 |
+
+Cost of removal: **15 defaulters (0.89%)**, inside the +/-41 noise and under the
+pre-registered bar of 50. **DROPPED.**
+
+The model no longer depends on one company's internal triage policy, and there is no
+counter-intuitive coefficient to explain away. Features 61 -> **60**, categorical 6 -> 5.
+
+Rebuilt, re-split, re-fitted, re-evaluated. New headline figures:
+
+| | before | after |
+|---|---|---|
+| features | 61 | 60 |
+| recall @10% | 26.53% | 26.29% |
+| precision @10% | 9.81% | 9.72% |
+| ROC-AUC | 0.6976 | 0.6962 |
+| Gini | 0.3952 | 0.3923 |
+| KS | 29.0 | 29.1 |
+| lift @10% | 2.65x | 2.63x |
+
+`src/10_ablation.py` is now a reusable tool - pass it any feature name to test whether
+it earns its place.
+
+
+---
+
+### Stage 10 — Segment analysis — DONE 2026-09-10
+
+`src/09_segments.py`. Asks, for each subgroup: of the defaulters IN THIS GROUP, how many
+land in the GLOBAL riskiest 10%? That is the right question because the model ranks
+everyone in one list.
+
+**Finding 1 — recall tracks base rate, in every single segment.**
+
+| credit score | base rate | recall | flagged |
+|---|---|---|---|
+| under 665 | 4.81% | 35.6% | 17.5% |
+| 665-695 | 4.11% | 27.9% | 11.9% |
+| 695-725 | 2.92% | 18.1% | 5.1% |
+| over 725 | 2.14% | 9.1% | 1.7% |
+
+Same shape for income, dti, home ownership, term, employment length, purpose. Not a bug:
+a single global ranking concentrates reviews where risk is concentrated. But it IS a
+blind spot - only 1.7% of the over-725 group is ever looked at, so 440 of their 484
+defaulters sail through. If that segment grows, losses grow invisibly.
+
+**Finding 2 — disparate impact, and the script that tests for it.**
+
+Renters are flagged 15.3% of the time, mortgage holders 5.3% - nearly 3x. Home ownership
+is not protected, but tracks age, wealth and (in many countries) ethnicity. Third time
+this pattern has appeared: `zip_code`, `credit_history_months`, now `home_ownership`.
+
+`src/09_segments.py` IS a disparate-impact audit - swap the segment for a protected
+characteristic and it does what a lender's fairness testing does. We cannot run it that
+way because Lending Club collects no demographics. Worth stating in the README: not
+collecting a characteristic does not prevent unequal outcomes, it only prevents you
+CHECKING for them. Fairness testing requires lawfully collected demographic data.
+
+**Finding 3 — `verification_status` runs backwards.** Led to the ablation above.
