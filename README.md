@@ -314,17 +314,42 @@ the one that describes actual harm — **a renter who would have repaid perfectl
 times more likely to be pulled into review than an identical-outcome mortgage holder.**
 That burden falls entirely on people the model got wrong.
 
-**My position:** this is acceptable for *this* use and not for a stronger one. Review is a
-low-harm intervention — a delay and a document request, not a refusal — and the ranking is
-doing real work, since the risk difference is genuine. It would **not** be acceptable as an
-automated decline rule, where a 9.8pp false-positive gap would translate directly into
-denied credit along a wealth-correlated line.
+**So I measured what the feature is buying.** Against a bar fixed in git beforehand
+(commit `02b151b`), refitting without `home_ownership` costs **+18 defaulters** — against
+sampling noise of ±41 on a count of 1,663. ROC-AUC moves −0.0023.
 
-Concretely, before this shipped I would: monitor the flag ratio and the FPR gap as
-first-class metrics alongside Gini, set a threshold at which the amplification triggers
-review of the model rather than of the applicant, and test a tenure-blind variant to price
-what `home_ownership` is actually buying. That last one is measurable with the existing
-`src/10_ablation.py` and has not been run.
+```
+baseline (all features)               1,663   26.29%   0.6962
+without home_ownership                1,645   26.00%   0.6939
+                                        +18   inside ±41 noise
+```
+
+**The largest-magnitude coefficient in this model is not paying for itself.** The ~2×
+fairness amplification was being carried for free, and so was the unstable `ANY`
+reference category described in the limitations below. By the pre-registered bar, the
+verdict is: drop it.
+
+**My position, then, is not that this is an acceptable trade-off — it is that it is not a
+trade-off at all.** A disparity that costs nothing to remove should be removed. Review is
+a low-harm intervention and the ranking does real work, so this build is defensible as
+triage and would still be unacceptable as an automated decline rule. But "defensible"
+was the wrong bar once the price turned out to be zero.
+
+**Why the tenure-blind model is not the one reported here.** The test set was opened at
+stage 13, when model selection was genuinely closed on the evidence then available. This
+ablation was only prompted by writing the fairness section afterwards. Refitting now and
+re-scoring test would be a second look at the pile, informed by the first — trading the
+one honest out-of-sample estimate in this project for +18 defaulters and a tidier story.
+That is a bad trade, so the 60-feature model is reported as built.
+
+**The real lesson is the sequencing.** Fairness analysis was treated as a reporting step
+after modelling, when it should have been a modelling step. Run before stage 13 rather
+than after, it would have cost nothing and produced a better model. That is the single
+thing I would change about how this project was run — ahead of any modelling choice in it.
+
+If this shipped, flag ratio and FPR gap would be monitored as first-class metrics
+alongside Gini, with a threshold at which the amplification triggers review of the model
+rather than of the applicant.
 
 The point worth stating plainly: **not collecting ethnicity does not stop a model
 producing unequal outcomes. It only stops you checking.** Fairness testing requires
@@ -338,7 +363,13 @@ and even then the residual is disclosed rather than claimed away.
 
 ## Limitations
 
-**Random split, not out-of-time.** This is the most important one. The split is stratified
+**Fairness was measured too late in the sequence.** The tenure-blind ablation showed
+`home_ownership` costs nothing, but it was run after the test set had been opened, so the
+better model is documented rather than shipped. Fairness analysis belongs before model
+selection closes, not in the write-up afterwards. This is a process limitation rather than
+a technical one, and it is the one I would fix first.
+
+**Random split, not out-of-time.** The most important *technical* one. The split is stratified
 random across a cohort that I have *demonstrated* contains a structural break — twelve
 columns begin collection in December 2015 (`src/04_missingness.py`). A random split lets
 the model see both regimes in training. A 2015-train / 2016-test split would be the
@@ -355,7 +386,9 @@ category `ANY`, which has **73 rows out of 513,300**. Every home-ownership coeff
 measured against that tiny base and is unstable as stated. Since per-feature
 explainability is the stated reason for choosing logistic regression, this matters. In a
 production scorecard the reference would be the modal category, or WOE binning would
-remove the issue entirely.
+remove the issue entirely. **In practice the cleaner fix is to drop the feature**: it costs
+18 defaulters, inside noise (see Responsible use), which removes this caveat and the
+fairness amplification together.
 
 **An unseen category.** `purpose = 'educational'` appears in the test set but not in
 training. It is encoded as all zeros (`handle_unknown='ignore'`). Rare, harmless here,

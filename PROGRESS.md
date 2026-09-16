@@ -971,5 +971,50 @@ lands under 41, that limitation disappears rather than needing a caveat.
 on defaulters caught at the operating point, and that is what the bands above are written
 against - the same basis as every other ablation in this project.
 
-Result to follow.
+**RESULT — 16/09/2026.**
+
+```
+model                                caught   recall   ROC-AUC
+baseline (all features)               1,663   26.29%    0.6962
+without home_ownership                1,645   26.00%    0.6939
+
+cost of removing: +18 defaulters (+1.08% relative)
+sampling noise on ~1,663 is roughly +/-41
+```
+
+**+18. Inside noise.** By the bar fixed before the run, the verdict is **drop it**.
+
+The largest-magnitude coefficient in the model is not paying for itself. The ~2x fairness
+amplification in stage 14b was being carried for free, and so was the unstable `ANY`
+reference category (n=73) disclosed in the README limitations. Both would disappear with
+one line in `config.py`.
+
+**And yet the model shipped here still has it. That is a sequencing error, not a
+judgement call.**
+
+The test pile was opened at stage 13. Model selection was declared closed at that point,
+and it was closed - on the evidence available then. This ablation was not run until after,
+because the fairness position in stage 14b is what made the question obvious. Had it been
+run before stage 13, `home_ownership` would have been dropped and the tenure-blind model
+would be the one with the clean out-of-sample estimate.
+
+Refitting now and re-scoring test would be a second look at the pile, informed by the
+first. The one honest estimate in this project is honest precisely because it was taken
+once. Trading that for +18 defaulters and a tidier fairness story is a bad trade, and
+making it would undermine the discipline the rest of the project rests on.
+
+**Decision: report the 60-feature model as built, with this result stated.** The
+tenure-blind variant is measured, documented, and named as the first change to make -
+alongside the out-of-time split - in a rebuild that starts with a fresh test pile.
+
+**What this changes in the README.** The stage 14b position was that the renter
+amplification is an acceptable trade-off for triage. That was written without knowing the
+price. The price is 18 defaulters, which is nothing, so the honest position is stronger:
+the disparity is not a trade-off at all, it is an unpriced cost that should be removed,
+and the only reason it survives in this build is that the measurement came too late in
+the sequence.
+
+**The lesson, stated plainly.** Fairness analysis was treated as a reporting step after
+modelling. It should have been a modelling step. Running stage 14b before stage 13 would
+have cost nothing and produced a better model.
 
