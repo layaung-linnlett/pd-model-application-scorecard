@@ -13,8 +13,14 @@ data/processed/*
 
 # Outputs
 outputs/models/*.joblib
-outputs/figures/*.png
+# Figures ARE tracked: README.md embeds them, and GitHub renders the README as
+# the project's front page. ~580 KB total, regenerable from src/07_evaluate.py
+# and src/12_shap.py.
 !outputs/**/.gitkeep
+
+# Strays swept in by accident, kept on disk but out of the repo
+/output.pdf
+/column_inventory.csv
 
 # OS / editor
 .DS_Store
