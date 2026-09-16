@@ -27,5 +27,6 @@ ipykernel==7.1.0
 # Tested and rejected, but kept installed so src/08_smote.py stays runnable
 imbalanced-learn==0.14.2   # SMOTE: rejected 2026-09-09, see docs/interview_notes.md
 
-# --- Deferred: not yet needed ---
-# xgboost==3.2.0          # pinned: 3.3.x needs Python 3.12+
+# Challenger model and its explanations (src/11_trees.py, src/12_shap.py)
+xgboost==3.2.0             # pinned: 3.3.x needs Python 3.12+
+shap==0.51.0               # per-borrower attribution for the challenger

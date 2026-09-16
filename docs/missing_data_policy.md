@@ -83,11 +83,11 @@ This is also why the train/validation/test split happens *before* any imputation
 
 | | Count |
 |---|---|
-| Features after the column policy | 64 |
-| Missing-indicator flags added | 12 |
-| Columns entering the model | 76 |
+| Features after the column policy | 60 |
+| Missing-indicator flags added | 11 |
+| Columns entering the model | 71 |
 
-(Before one-hot encoding of the six categorical features.)
+(Before one-hot encoding of the five categorical features.)
 
 ## Known limitation
 

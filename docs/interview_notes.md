@@ -66,14 +66,14 @@ Both come from the **same cell** of the confusion matrix, divided differently.
 
 ```
                       DID default    did NOT
-REVIEWED                    1,678     15,432
-approved unreviewed         4,648    149,343
+REVIEWED                    1,663     15,447
+approved unreviewed         4,663    149,328
 
-recall     1,678 ÷ 6,326   = 26.5%   read DOWN the column
-precision  1,678 ÷ 17,110  =  9.8%   read ACROSS the row
+recall     1,663 ÷ 6,326   = 26.3%   read DOWN the column
+precision  1,663 ÷ 17,110  =  9.7%   read ACROSS the row
 ```
 
-Precision of 9.8% means 9 in 10 reviews find nothing. That sounds bad until you
+Precision of 9.7% means 9 in 10 reviews find nothing. That sounds bad until you
 price the two mistakes:
 
 ```
@@ -118,6 +118,10 @@ wettest-looking days.
 | baseline | 2 | 3.69% | 1,678 |
 | balanced | 64,304 | 44.64% | ~1,673 |
 
+*Measured 08/09/2026 on the 61-feature model, before `verification_status` was dropped.
+The current baseline catches 1,663. The comparison is unaffected — both arms used the
+same feature set.*
+
 Enormous change in alarm level. **No change in who gets reviewed:** 91.4% of the
 same people, Spearman rank correlation **0.9934**.
 
@@ -141,6 +145,8 @@ balance, so the model trains partly on borrowers who never applied.
                   caught @10%   ROC-AUC
 baseline                1,678    0.6976
 SMOTE                   1,637    0.6914     -41, against a +50 bar
+
+(09/09/2026, 61-feature model — see note in section 5.)
 ```
 
 **Different failure from class weighting, and that's the interesting bit:**
@@ -211,8 +217,8 @@ where risk is concentrated. But only 1.7% of the over-725 group is ever looked a
 **The fairness half:**
 
 ```
-renters flagged        15.3%
-mortgage holders        5.3%     nearly 3x
+renters flagged        15.5%
+mortgage holders        5.2%     nearly 3x
 ```
 
 Home ownership isn't protected, but it tracks age, wealth and often ethnicity.
@@ -233,7 +239,7 @@ you get 47 or 53, not always 50.
 
 ```
 the wobble ≈ the square root of the count
-  100 → ±10        1,678 → ±41        10,000 → ±100
+  100 → ±10        1,663 → ±41        10,000 → ±100
 ```
 
 It grows *slower* than the count, which is why large samples are more trustworthy.
@@ -385,15 +391,15 @@ is why 90 days lands at 4 months rather than 3.
 
 ## 12. ROC-AUC, Gini, KS
 
-**ROC-AUC 0.6976.** Pick one defaulter and one non-defaulter at random; how often does
+**ROC-AUC 0.6962.** Pick one defaulter and one non-defaulter at random; how often does
 the model score the defaulter higher? 70% of the time.
 Floor is **0.50** (a coin flip), not 0. Below 0.50 means systematically wrong, which is
 usable upside down.
 
-**Gini 0.3952** = 2 × AUC − 1. Same information, rescaled so useless = 0.
+**Gini 0.3923** = 2 × AUC − 1. Same information, rescaled so useless = 0.
 **The credit-industry convention** — say "Gini 0.40" in a lending interview.
 
-**KS 29.0.** Reading down the ranked list, the widest gap between how fast defaulters
+**KS 29.1.** Reading down the ranked list, the widest gap between how fast defaulters
 accumulate and how fast non-defaulters do. At 34.4% down the list you've collected
 62.3% of defaulters against 33.3% of non-defaulters. Typical range for an application
 scorecard is 20–30.

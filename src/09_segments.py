@@ -70,7 +70,6 @@ def main() -> None:
     segments = {
         "home ownership": val["home_ownership"],
         "loan term": val["term"],
-        "income verified": val["verification_status"],
         "employment length": pd.Series(emp, index=val.index),
         "annual income": band(val["annual_inc"], [0, 45_000, 65_000, 95_000, np.inf],
                               ["under 45k", "45-65k", "65-95k", "over 95k"]),

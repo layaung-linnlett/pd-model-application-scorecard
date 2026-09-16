@@ -13,27 +13,30 @@ Policy implemented in [`src/config.py`](../src/config.py).
 
 | Outcome | Columns |
 |---|---:|
-| Kept as features | 78 |
+| Kept as features | 60 |
 | Used to build the label (never features) | 3 |
-| Dropped | 70 |
+| Dropped | 88 |
 
 ---
 
-## Kept — known at application time (78)
+## Kept — known at application time (60)
 
-**Stated by the borrower on the form (9)**
+**Stated by the borrower on the form (8)**
 `loan_amnt`, `term`, `purpose`, `application_type`, `emp_length`, `home_ownership`,
-`annual_inc`, `verification_status`, `dti`
+`annual_inc`, `dti`
 
-**Credit-bureau attributes pulled at application (69)**
-Core: `fico_range_low`, `fico_range_high`, `earliest_cr_line`, `delinq_2yrs`,
+(`verification_status` was here until 10/09/2026, when it was dropped as a record of
+lender suspicion rather than borrower risk — see `DROP_LENDER_PROCESS` in `src/config.py`.)
+
+**Credit-bureau attributes pulled at application (52)**
+Core: `fico_range_low`, `fico_range_high`, `delinq_2yrs`,
 `inq_last_6mths`, `open_acc`, `pub_rec`, `revol_bal`, `revol_util`, `total_acc`,
 `collections_12_mths_ex_med`, `mths_since_last_delinq`, `mths_since_last_record`,
 `mths_since_last_major_derog`, `acc_now_delinq`, `delinq_amnt`, `pub_rec_bankruptcies`,
 `tax_liens`, `chargeoff_within_12_mths`
 
 Extended bureau panel: the `num_*`, `mo_sin_*`, `mths_since_recent_*`, `open_*`,
-`total_*`, `bc_*`, `il_util`, `all_util`, `avg_cur_bal`, `mort_acc`, `pct_tl_nvr_dlq`,
+`total_*`, `bc_*`, `avg_cur_bal`, `mort_acc`, `pct_tl_nvr_dlq`,
 `percent_bc_gt_75` families — see `BUREAU_EXTENDED` in `src/config.py`.
 
 ---
