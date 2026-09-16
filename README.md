@@ -215,8 +215,28 @@ safest deciles. Adequate for ranking; **not** adequate for ECL without recalibra
 A reliability curve and Brier score would be the proper test, and isotonic regression the
 likely fix.
 
+### The four views that matter
+
 ![Baseline evaluation](outputs/figures/baseline_evaluation.png)
+
+*ROC curve, the catch-rate-against-review-rate curve, the KS separation, and the
+score distributions. The last panel is the honest one: the two groups overlap heavily.
+That overlap is the problem, and no model here makes it go away.*
+
 ![SHAP summary](outputs/figures/shap_summary.png)
+
+*What drives the **challenger's** predictions globally — which features matter and in
+which direction, across all borrowers.*
+
+![One borrower explained](outputs/figures/shap_one_borrower.png)
+
+*And this is the argument for not shipping the challenger. **A single borrower's
+prediction, decomposed.** Explainability that works per-applicant rather than in
+aggregate is what UK GDPR Article 22 pushes toward, and what a declined applicant is
+owed. A logistic regression coefficient gives this directly and exactly; SHAP
+reconstructs it after the fact, by probing a model that never computed it — and when
+features correlate at 0.92, as they do here, the attribution between them is partly
+arbitrary. That gap is why Gini 0.427 lost to Gini 0.383.*
 
 ## What it is worth
 
@@ -467,6 +487,15 @@ random across a cohort that I have *demonstrated* contains a structural break �
 columns begin collection in December 2015 (`src/04_missingness.py`). A random split lets
 the model see both regimes in training. A 2015-train / 2016-test split would be the
 honest test, and I would expect Gini to fall. This is the first thing I would add.
+
+![Missingness by month](outputs/figures/missingness_by_month.png)
+
+*The break, made visible. Twelve bureau columns go from almost entirely blank to almost
+entirely populated in December 2015 — and it is a **collection** change at the lender,
+not a change in borrowers. Those columns were dropped for that reason
+(`DROP_TIME_VARYING_AVAILABILITY`, 14 columns), because availability is a date stamp
+rather than a borrower attribute. The same chart is why a random split flatters this
+model.*
 
 **No weight-of-evidence binning.** WOE is the scorecard industry standard. It would
 handle the outlier problem structurally rather than by policy, and produce the points-based
