@@ -218,6 +218,47 @@ likely fix.
 ![Baseline evaluation](outputs/figures/baseline_evaluation.png)
 ![SHAP summary](outputs/figures/shap_summary.png)
 
+## What it is worth
+
+Catching a likely defaulter is not the same as preventing the loss. The model routes an
+application to review; whether that review *stops* anything depends on what the reviewer
+does, which this project does not define and does not measure. So rather than assert a
+saving, `src/14_expected_value.py` solves for the break-even:
+
+> **What share of the losses it identifies would review have to prevent, for the model to
+> pay for its own review cost?**
+
+**First, money is not counts.** Recall counts defaulters; a lender loses balances. The
+model skews toward larger loans, so it does better on money than its headline suggests:
+
+| | |
+|---|---:|
+| mean loan, defaults **caught** | $17,340 |
+| mean loan, defaults **missed** | $14,983 |
+| recall by count | 26.3% |
+| **recall by money** | **29.2%** |
+
+**Break-even by review capacity** (test set; review $50, LGD 65% — both assumptions):
+
+| review | reviews | defaulted balances found | review cost | loss identified | must prevent |
+|---:|---:|---:|---:|---:|---:|
+| 1% | 1,711 | $4,583,325 | $85,550 | $2,979,161 | **2.9%** |
+| 5% | 8,555 | $17,461,600 | $427,750 | $11,350,040 | **3.8%** |
+| **10%** | **17,110** | **$28,837,250** | **$855,500** | **$18,744,212** | **4.6%** |
+| 20% | 34,220 | $45,426,975 | $1,711,000 | $29,527,534 | **5.8%** |
+| 50% | 85,550 | $77,318,525 | $4,277,500 | $50,257,041 | **8.5%** |
+
+At the 10% operating point, review must prevent **4.6%** of the losses it identifies to
+wash its face. Across a sensitivity grid of review cost $25–$100 and LGD 55–80%, the bar
+stays between **1.9% and 10.8%** — it never gets demanding.
+
+**Two honest caveats.** The bar falls as capacity falls: reviewing the riskiest 1% needs
+only 2.9%, because those reviews are better targeted. That argues for a *smaller, sharper*
+queue than 10% unless the review team can absorb more. And none of this proves the model
+creates value — it is a statement about review economics. Intervention effectiveness is
+unmeasured, and measuring it needs a production holdout: review a random subset, leave a
+matched subset alone, compare.
+
 ## Tested and rejected
 
 Each of these had its decision bar committed to git **before** the test was run
@@ -252,6 +293,38 @@ does measure is stark (validation set):
 Renters are flagged at roughly **three times** the rate of mortgage holders. Home
 ownership is not a protected characteristic, but it tracks age, wealth and — in the UK
 and US alike — ethnicity.
+
+**Disclosure is not a position, so here is the position.**
+
+Part of that gap is real risk: renters default at 4.51% against 3.02% for mortgage
+holders, a ratio of **1.49×**. But they are flagged at a ratio of **2.98×**. The model
+therefore **amplifies the underlying disparity by very close to 2×**, and that
+amplification — not the base-rate difference — is the part that needs justifying.
+
+Two sharper readings of the same numbers:
+
+| | RENT | MORTGAGE | gap |
+|---|---:|---:|---:|
+| Defaulters correctly flagged (TPR) | 34.0% | 16.9% | **17.1pp** |
+| **Non-defaulters wrongly flagged (FPR)** | **14.62%** | **4.84%** | **9.8pp** |
+
+The first is a failure of *equal opportunity* in the technical sense: a renter who
+defaults is twice as likely to be caught as a mortgage holder who defaults. The second is
+the one that describes actual harm — **a renter who would have repaid perfectly is three
+times more likely to be pulled into review than an identical-outcome mortgage holder.**
+That burden falls entirely on people the model got wrong.
+
+**My position:** this is acceptable for *this* use and not for a stronger one. Review is a
+low-harm intervention — a delay and a document request, not a refusal — and the ranking is
+doing real work, since the risk difference is genuine. It would **not** be acceptable as an
+automated decline rule, where a 9.8pp false-positive gap would translate directly into
+denied credit along a wealth-correlated line.
+
+Concretely, before this shipped I would: monitor the flag ratio and the FPR gap as
+first-class metrics alongside Gini, set a threshold at which the amplification triggers
+review of the model rather than of the applicant, and test a tenure-blind variant to price
+what `home_ownership` is actually buying. That last one is measurable with the existing
+`src/10_ablation.py` and has not been run.
 
 The point worth stating plainly: **not collecting ethnicity does not stop a model
 producing unequal outcomes. It only stops you checking.** Fairness testing requires
@@ -316,6 +389,7 @@ python src/09_segments.py           # segment / disparate-impact audit
 python src/11_trees.py              # challengers
 python src/12_shap.py               # per-borrower explanations
 python src/13_final_test.py         # sealed test set — run once
+python src/14_expected_value.py     # break-even on review economics
 ```
 
 `src/10_ablation.py <feature>` refits without a named feature and reports the cost at the

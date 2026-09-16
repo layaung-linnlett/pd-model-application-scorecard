@@ -867,3 +867,76 @@ frequency; in production it is exactly what a monitoring rule should catch.
 
 On the challenger: +126 defaulters on test (+122 on validation) — the pre-registered
 verdict holds out of sample, which is the useful part.
+
+---
+
+## Stage 14 — what is it worth? 16/09/2026
+
+The project costed the asymmetry in words ("a wasted review costs an analyst hour, a
+missed default costs a fraction of the loan") and never in numbers. That is the gap a
+lender interviews for, so it is closed here.
+
+**Not with a claimed saving.** Catching a defaulter is not preventing the loss — that
+depends on what the reviewer does, which this project never defines. Any "saves $X"
+figure would smuggle in an intervention-effectiveness assumption nothing here measures.
+So `src/14_expected_value.py` solves for the break-even instead: what share of identified
+losses must review actually prevent to cover its own cost.
+
+**Money is not counts.** Recall counts defaulters; a lender loses balances. The model
+skews to larger loans — mean $17,340 for defaults caught against $14,983 for defaults
+missed — so recall by money is **29.2%** against 26.3% by count. Worth reporting.
+
+| review | reviews | balances found | cost | loss identified | must prevent |
+|---:|---:|---:|---:|---:|---:|
+| 1% | 1,711 | $4,583,325 | $85,550 | $2,979,161 | 2.9% |
+| 5% | 8,555 | $17,461,600 | $427,750 | $11,350,040 | 3.8% |
+| **10%** | 17,110 | $28,837,250 | $855,500 | $18,744,212 | **4.6%** |
+| 20% | 34,220 | $45,426,975 | $1,711,000 | $29,527,534 | 5.8% |
+| 50% | 85,550 | $77,318,525 | $4,277,500 | $50,257,041 | 8.5% |
+
+Assumptions: review $50, LGD 65%. Sensitivity over review $25–100 and LGD 55–80% keeps
+the bar between 1.9% and 10.8%. It never gets demanding.
+
+**The uncomfortable implication.** The break-even falls as capacity falls — 2.9% at 1%
+review against 4.6% at 10%. `REVIEW_CAPACITY = 0.10` was chosen as a plausible operating
+assumption, not derived from cost, and the economics mildly favour a smaller, sharper
+queue. Kept at 10% because the assumption is stated and the curve is published; flagged
+because "why 10%?" now has a better answer available than "it seemed reasonable".
+
+---
+
+## Stage 14b — taking a position on the renter disparity. 16/09/2026
+
+Stage 10 disclosed that renters are flagged ~3x more often than mortgage holders and
+stopped there. Disclosure without a decision is half a fairness review.
+
+```
+                     base rate   flagged      TPR       FPR
+RENT                     4.51%    15.50%    34.0%    14.62%
+OWN                      3.83%    11.57%    26.8%    10.96%
+MORTGAGE                 3.02%     5.21%    16.9%     4.84%
+
+risk ratio   RENT/MORTGAGE          1.49x
+flag ratio   RENT/MORTGAGE          2.98x
+AMPLIFICATION                       1.99x   <- the part needing justification
+```
+
+Part of the gap is real risk (1.49x). The model flags at 2.98x, so it **amplifies the
+underlying disparity by almost exactly 2x**. The base-rate difference is not the finding;
+the amplification is.
+
+Two readings that sharpen it. The **17.1pp TPR gap** is a failure of equal opportunity in
+the technical sense. The **9.8pp FPR gap** is the one describing real harm: a renter who
+would have repaid perfectly is three times more likely to be pulled into review than an
+identical-outcome mortgage holder. That burden falls entirely on people the model got
+wrong.
+
+**Position.** Acceptable for triage, not for a decline rule. Review is low-harm — a delay
+and a document request — and the ranking is doing genuine work. As an automated decline,
+a 9.8pp false-positive gap would become denied credit along a wealth-correlated line.
+
+**If this shipped:** monitor flag ratio and FPR gap alongside Gini as first-class metrics;
+set a threshold at which amplification triggers review of the model rather than the
+applicant; run a tenure-blind ablation to price what `home_ownership` actually buys.
+That last is one command with the existing `src/10_ablation.py` and has not been run.
+
