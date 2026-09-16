@@ -259,6 +259,37 @@ creates value — it is a statement about review economics. Intervention effecti
 unmeasured, and measuring it needs a production holdout: review a random subset, leave a
 matched subset alone, compare.
 
+## How much to believe it
+
+Three checks that change no model and settle three questions
+(`src/16_robustness.py`).
+
+**The headline has a spread.** 1,000 bootstrap resamples of the test set:
+
+| | Gini | 95% CI |
+|---|---:|---:|
+| logistic (champion) | 0.3831 | [0.3700, 0.3950] |
+| xgboost (challenger) | 0.4273 | [0.4146, 0.4392] |
+| **difference** | **+0.0442** | **[+0.0371, +0.0514]** |
+
+The difference is resampled in **pairs** — both models scored on the same rows each time,
+since their errors are correlated. **The interval excludes zero**, so the challenger's
+advantage is real rather than noise. That sharpens the deployment choice: XGBoost is
+genuinely, measurably better, and logistic regression is kept anyway because explainability
+is worth more than a demonstrated 0.044 of Gini. A wash would have made that decision easy;
+this makes it a priced one.
+
+**The inputs are stable.** PSI across all 60 features, train vs test: **maximum 0.0002**,
+nothing near the 0.10 threshold. That is the expected result and deliberately so — these
+are random halves of one cohort, so this is a *floor reading*, not a drift test. Its value
+is as the baseline a production monitor would compare new applicants against.
+
+**Nothing is scored blind.** `handle_unknown="ignore"` encodes an unseen category as all
+zeros and carries on silently. `cfg.unseen_categories()` now reports them, and
+`src/13_final_test.py` warns before scoring. It catches the one `purpose='educational'`
+row in the test set — harmless here, and precisely the failure mode that should never be
+silent when the output is a credit decision.
+
 ## Tested and rejected
 
 Each of these had its decision bar committed to git **before** the test was run
@@ -356,6 +387,37 @@ producing unequal outcomes. It only stops you checking.** Fairness testing requi
 lawfully collected demographic data, and its absence here is a limitation of the data,
 not evidence of a fair model.
 
+**`purpose` is the bigger problem, and it was nearly missed.**
+
+Running the same amplification test across every segment turns up a worse offender than
+home ownership — and the audit's own binning had been hiding it, collapsing `purpose` into
+the top four categories plus "other", which buried the most-flagged group of all.
+Ungrouped:
+
+| Loan purpose | base rate | flagged | FPR |
+|---|---:|---:|---:|
+| small_business | 6.56% | **38.8%** | 37.45% |
+| moving | 5.50% | 32.2% | 30.71% |
+| medical | 5.05% | 25.3% | 24.28% |
+| debt_consolidation | 3.89% | 10.8% | 10.17% |
+| credit_card | 2.62% | **2.6%** | 2.34% |
+
+Small-business borrowers default at **2.50×** the rate of credit-card refinancers and are
+flagged at **15.17×** — an amplification of **6.06×**, three times worse than home
+ownership, with a **35.1pp** false-positive gap.
+
+Two of those rows deserve naming. **`medical`**: a quarter of medical-purpose borrowers who
+would have repaid are pulled into review, against 2.3% of credit-card refinancers. In a US
+dataset, medical borrowing correlates with health status and disability — this is the row
+most likely to be a protected-characteristic proxy, and it is not one I would have gone
+looking for. **`small_business`**: genuinely riskier, but nothing in the outcome data
+justifies a 15× flagging ratio.
+
+`purpose` is not ablated here. Doing it properly means pre-registering a bar first, as
+every other feature decision in this project did, and that is the next stage rather than
+an afterthought. The honest position today is that the model's second-largest coefficient
+is amplifying a disparity six-fold and the price of removing it is unmeasured.
+
 **Age is not fully removed.** Three age-proxy columns were dropped, but the remaining
 account-count features still correlate with age at roughly 0.26–0.31. Dropping one of a
 pair correlated at 0.92 changes nothing — you have to remove the cluster, not the column,
@@ -391,11 +453,15 @@ remove the issue entirely. **In practice the cleaner fix is to drop the feature*
 fairness amplification together.
 
 **An unseen category.** `purpose = 'educational'` appears in the test set but not in
-training. It is encoded as all zeros (`handle_unknown='ignore'`). Rare, harmless here,
-and exactly the kind of thing that needs a monitoring rule in production.
+training — one row, encoded as all zeros (`handle_unknown='ignore'`). Found by accident at
+stage 13; now detected on purpose by `cfg.unseen_categories()`, which
+`src/13_final_test.py` calls before scoring. Harmless at this frequency; the fix is the
+alert, not the row.
 
-**No monitoring plan.** Nothing here covers PSI, score drift, champion/challenger
-promotion or a retraining trigger. A model that shipped would need all four.
+**Monitoring is started, not finished.** PSI now has a baseline
+(`src/16_robustness.py`) and unseen categories are detected rather than silent. Score
+drift, champion/challenger promotion rules and a retraining trigger are still absent, and
+a model that shipped would need all three.
 
 **Single snapshot.** One vintage of one lender's accepted applications. Rejected
 applicants are absent entirely, so this models default *among those already approved* —
@@ -423,6 +489,7 @@ python src/11_trees.py              # challengers
 python src/12_shap.py               # per-borrower explanations
 python src/13_final_test.py         # sealed test set — run once
 python src/14_expected_value.py     # break-even on review economics
+python src/16_robustness.py         # bootstrap CIs, PSI, unseen categories
 ```
 
 `src/10_ablation.py <feature>` refits without a named feature and reports the cost at the

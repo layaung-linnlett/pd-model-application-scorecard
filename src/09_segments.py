@@ -77,28 +77,67 @@ def main() -> None:
                              ["under 665", "665-695", "695-725", "over 725"]),
         "debt-to-income": band(val["dti"], [-1, 12, 19, 26, np.inf],
                                ["under 12", "12-19", "19-26", "over 26"]),
-        "loan purpose": val["purpose"].where(
-            val["purpose"].isin(val["purpose"].value_counts().head(4).index), "other"),
+        # NOT collapsed to the top 4. Doing so buried small_business - the most
+        # heavily flagged group in the whole audit - inside an "other" bucket.
+        # The >=50 defaults filter below already drops groups too small to read.
+        "loan purpose": val["purpose"],
     }
 
     for name, seg in segments.items():
         print(f"--- by {name} ---")
         print(f"{'group':<22}{'people':>9}{'defaults':>10}{'base rate':>11}"
-              f"{'RECALL':>9}{'flagged':>10}")
+              f"{'RECALL':>9}{'flagged':>10}{'FPR':>9}")
         rows = []
         for g in seg.dropna().unique():
             m = (seg == g).values
             defs = int(y[m].sum())
             if defs < 50:
                 continue
+            fpr = (reviewed[m] & (y[m] == 0)).sum() / (y[m] == 0).sum()
             rows.append((str(g), int(m.sum()), defs, y[m].mean(),
-                         y[m & reviewed].sum() / defs, reviewed[m].mean()))
-        for g, cnt, defs, base, rec, flag in sorted(rows, key=lambda r: -r[4]):
-            print(f"{g:<22}{cnt:>9,}{defs:>10,}{base:>11.2%}{rec:>9.1%}{flag:>10.1%}")
+                         y[m & reviewed].sum() / defs, reviewed[m].mean(), fpr))
+        for g, cnt, defs, base, rec, flag, fpr in sorted(rows, key=lambda r: -r[4]):
+            print(f"{g:<22}{cnt:>9,}{defs:>10,}{base:>11.2%}{rec:>9.1%}"
+                  f"{flag:>10.1%}{fpr:>9.2%}")
         if rows:
             best, worst = max(r[4] for r in rows), min(r[4] for r in rows)
             print(f"{'':<22}{'':>9}{'':>10}{'':>11}{'spread':>9} "
-                  f"{(best-worst)*100:>.1f} pp\n")
+                  f"{(best-worst)*100:>.1f} pp")
+            amplification(name, rows)
+
+
+def amplification(name: str, rows: list) -> None:
+    """How much harder does the model flag a group than its risk justifies?
+
+    A group that defaults twice as often SHOULD be flagged more often. The
+    question is how much more. Comparing the flag ratio to the base-rate ratio
+    isolates the part the model added:
+
+        amplification = (flag rate ratio) / (base rate ratio)
+
+    1.0 means flagging tracks risk exactly. Above 1.0 the model widens the gap
+    beyond what the outcome data justifies, and the excess is what needs
+    defending.
+
+    The FPR gap is the harm in plain terms: the difference, between the most-
+    and least-flagged group, in how often someone who WOULD HAVE REPAID is
+    pulled into review anyway. That burden falls entirely on people the model
+    got wrong, and no amount of genuine risk difference explains it.
+    """
+    hi = max(rows, key=lambda r: r[5])
+    lo = min(rows, key=lambda r: r[5])
+    if lo[3] == 0 or lo[5] == 0:
+        return
+    risk_ratio = hi[3] / lo[3]
+    flag_ratio = hi[5] / lo[5]
+    amp = flag_ratio / risk_ratio
+    flag = "  <-- REVIEW THIS" if amp >= 2.0 else ""
+    print(f"{'':<22}most flagged: {hi[0]}   least: {lo[0]}")
+    print(f"{'':<22}risk ratio {risk_ratio:>5.2f}x   "
+          f"flag ratio {flag_ratio:>6.2f}x   "
+          f"amplification {amp:>5.2f}x{flag}")
+    print(f"{'':<22}FPR gap {(hi[6]-lo[6])*100:>5.1f} pp "
+          f"({hi[6]:.2%} vs {lo[6]:.2%})\n")
 
 
 if __name__ == "__main__":

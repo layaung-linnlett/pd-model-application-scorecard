@@ -280,3 +280,29 @@ DATA_QUALITY_LIMITS = {
 # ---------------------------------------------------------------------------
 
 REVIEW_CAPACITY = 0.10
+
+
+def unseen_categories(reference, candidate, columns=None) -> dict:
+    """Categories present in `candidate` but never seen in `reference`.
+
+    OneHotEncoder is configured with handle_unknown="ignore", which encodes an
+    unseen category as all zeros and says nothing. That is the right behaviour -
+    it keeps scoring running - but silence is the wrong default when the thing
+    being scored is a credit decision. The borrower is quietly treated as the
+    reference category, and nobody is told.
+
+    This makes it loud. Call it before scoring any pile the model was not
+    trained on. Returns {column: {category: row_count}}, empty if all clear.
+    """
+    cols = columns if columns is not None else CATEGORICAL_FEATURES
+    found = {}
+    for col in cols:
+        if col not in candidate.columns or col not in reference.columns:
+            continue
+        known = set(reference[col].dropna().unique())
+        counts = candidate[col].dropna().value_counts()
+        unseen = {str(k): int(v) for k, v in counts.items() if k not in known}
+        if unseen:
+            found[col] = unseen
+    return found
+

@@ -128,6 +128,17 @@ def main() -> None:
     test = add_missing_flags(pd.read_parquet(INTERIM / "test.parquet"))
     y_val, y_test = val[TARGET].values, test[TARGET].values
 
+    # OneHotEncoder(handle_unknown="ignore") scores an unseen category as all
+    # zeros and says nothing. Say something.
+    train_ref = pd.read_parquet(INTERIM / "train.parquet", columns=list(cfg.CATEGORICAL_FEATURES))
+    unseen = cfg.unseen_categories(train_ref, test)
+    if unseen:
+        print("WARNING - categories in test never seen in training:")
+        for col, items in unseen.items():
+            for k, v in items.items():
+                print(f"  {col}='{k}' ({v:,} rows) scored as the reference category")
+        print()
+
     print(f"validation {len(val):,} rows, {y_val.mean():.4%} default rate")
     print(f"TEST       {len(test):,} rows, {y_test.mean():.4%} default rate")
     print(f"operating point: review the riskiest {cfg.REVIEW_CAPACITY:.0%}")

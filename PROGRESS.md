@@ -1018,3 +1018,88 @@ the sequence.
 modelling. It should have been a modelling step. Running stage 14b before stage 13 would
 have cost nothing and produced a better model.
 
+---
+
+## Stage 16 — robustness: intervals, stability, silence. 17/09/2026
+
+Three gaps that needed measurement rather than modelling. Nothing here refits or
+re-selects; the model was fixed at stage 13 and stays fixed.
+
+### Confidence intervals — the challenger's edge is real
+
+1,000 bootstrap resamples of the test pile, models resampled in PAIRS (same rows for both
+each iteration, because they score the same borrowers and their errors are correlated).
+
+```
+logistic  (champion)    Gini 0.3831   95% CI [0.3700, 0.3950]   +/-0.0125
+xgboost   (challenger)  Gini 0.4273   95% CI [0.4146, 0.4392]   +/-0.0123
+difference              +0.0442       95% CI [+0.0371, +0.0514]
+```
+
+**The interval on the difference excludes zero.** The stage 11 verdict called +122
+defaulters "real but modest" on the strength of a pre-registered band; it can now be
+called statistically significant. That does not change the decision - logistic regression
+still ships - but it changes its character. Keeping the champion is not a coin-flip
+resolved on principle; it is paying a measured 0.044 of Gini for per-applicant
+explainability, with the price known.
+
+Quoting Gini 0.3831 bare was implying a precision it did not have. It is +/-0.0125.
+
+### PSI — a floor reading, honestly labelled
+
+All 60 features, train vs test. Maximum **0.0002**; nothing within two orders of magnitude
+of the 0.10 threshold. Expected, and the reason to say so plainly: train and test are
+random halves of one cohort, so this measures nothing about drift. Its value is as the
+baseline a production monitor compares new applicants against. Recording it as a
+"stability result" without that caveat would be the sort of number that looks like
+diligence and is not.
+
+### Silence made loud
+
+`handle_unknown="ignore"` scores an unseen category as all zeros and reports nothing.
+Stage 13 found `purpose='educational'` by accident. `cfg.unseen_categories()` now finds it
+on purpose, and `src/13_final_test.py` warns before it scores anything. One row here; the
+fix is the alert, not the row.
+
+---
+
+## Stage 16b — `purpose` is a worse proxy than home ownership. 17/09/2026
+
+`src/09_segments.py` now reports, for every segment, the ratio of flag rates against the
+ratio of base rates. A group that defaults more SHOULD be flagged more; amplification
+isolates the part the model added on top.
+
+**The audit was hiding its own worst finding.** `purpose` had been collapsed to the top
+four categories plus "other", which buried `small_business` - the most heavily flagged
+group in the entire audit - inside a bucket. Removed; the >=50 defaults filter already
+handles small groups.
+
+```
+purpose              base rate   flagged      FPR
+small_business           6.56%    38.8%    37.45%
+moving                   5.50%    32.2%    30.71%
+medical                  5.05%    25.3%    24.28%
+debt_consolidation       3.89%    10.8%    10.17%
+credit_card              2.62%     2.6%     2.34%
+
+risk ratio     2.50x      flag ratio    15.17x
+AMPLIFICATION  6.06x      FPR gap       35.1 pp
+```
+
+Three times the amplification of `home_ownership` (1.99x) and three and a half times its
+FPR gap (9.8pp).
+
+**`medical` is the row that matters most and the one I was not looking for.** A quarter of
+medical-purpose borrowers who would have repaid are pulled into review, against 2.3% of
+credit-card refinancers. Medical borrowing correlates with health status and disability;
+this is the most plausible protected-characteristic proxy in the feature set, and it
+surfaced only because the binning was removed.
+
+**Not ablated, deliberately.** Measuring what `purpose` costs requires a pre-registered
+bar first, as `home_ownership`, `verification_status` and `credit_history_months` all had.
+Running it now and writing the bar afterwards would be exactly the failure the rest of
+this log exists to prevent. Next stage.
+
+The honest position today: the second-largest coefficient in the model amplifies a
+disparity six-fold, and the price of removing it is unmeasured.
+
