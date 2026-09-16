@@ -810,4 +810,60 @@ it early-stopped on the validation pile, that pile would have influenced the mod
 the comparison would flatter XGBoost. So 15% is carved out of TRAIN for early stopping
 and validation stays clean. Random Forest needs no equivalent.
 
-Result to follow.
+**RESULT — 16/09/2026.**
+
+```
+model                      caught   recall   ROC-AUC    Gini   vs baseline
+logistic (baseline)         1,663   26.29%    0.6962  0.3923
+random forest               1,630   25.77%    0.6979  0.3957          -33   REJECT
+xgboost                     1,785   28.22%    0.7161  0.4322         +122   CHALLENGER
+```
+
+Validation. XGBoost lands at **+122**, inside the pre-registered middle band
+(+50 to +250). Verdict as written before the test: **keep logistic regression as the
+model, report XGBoost as a challenger.** Random forest falls below the +50 floor and is
+rejected — it is inside sampling noise.
+
+No band was moved and no threshold was reinterpreted after seeing the number.
+
+---
+
+## Stage 13 — the sealed test set, opened once. 16/09/2026
+
+Model selection closed with the tree result above. Validation had by then been used for
+four decisions (stages 7, 9, 10, 11), so it was no longer an innocent estimate. Test was
+scored once, with nothing downstream changed as a result.
+
+```
+                      validation       TEST        gap
+logistic  Gini            0.3923     0.3831    -0.0092
+          ROC-AUC         0.6962     0.6916    -0.0046
+          KS                29.1       27.5       -1.6
+          caught @10%      1,663      1,663         +0
+
+xgboost   Gini            0.4322     0.4273    -0.0049
+          ROC-AUC         0.7161     0.7137    -0.0024
+          caught @10%      1,785      1,789         +4
+```
+
+About one point of Gini lost between validation and test. That gap is the size of the
+optimism the four validation-based decisions introduced, and it is small — the discipline
+of fitting medians inside the Pipeline and carving early-stopping out of train held up.
+
+**The identical count is a coincidence, and was checked.** Both piles hold exactly
+171,101 rows and exactly 6,326 defaulters, and the model caught 1,663 in each at the 10%
+cut. The predictions differ (mean 0.036963 vs 0.036953) and AUC moves, so it is one
+coincidence rather than four — all confusion-matrix cells follow from that single number.
+
+**Calibration, checked cheaply.** Predicted vs observed by decile on test: ratio 0.93–1.05
+through deciles 1–8, drifting to 1.12 and 1.15 in the two safest. Well calibrated where
+the decision is made; over-predicts among the safest applicants. Fine for ranking, not
+fine for IFRS 9 ECL without recalibration. A reliability curve and Brier score would be
+the proper test.
+
+**An unseen category surfaced.** `purpose = 'educational'` appears in test but not in
+train, and is encoded as all zeros by `handle_unknown='ignore'`. Harmless at this
+frequency; in production it is exactly what a monitoring rule should catch.
+
+On the challenger: +126 defaulters on test (+122 on validation) — the pre-registered
+verdict holds out of sample, which is the useful part.
