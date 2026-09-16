@@ -940,3 +940,36 @@ set a threshold at which amplification triggers review of the model rather than 
 applicant; run a tenure-blind ablation to price what `home_ownership` actually buys.
 That last is one command with the existing `src/10_ablation.py` and has not been run.
 
+---
+
+## Stage 15 — pre-registering the bar for a tenure-blind model. 16/09/2026
+
+`home_ownership` is the largest-magnitude coefficient in the model
+(`home_ownership_MORTGAGE`, -0.849) and the feature behind the fairness finding in
+stage 14b: renters are flagged at 2.98x mortgage holders against a real risk ratio of
+1.49x, an amplification of ~2x. The README currently states a position on that disparity
+without knowing what removing the feature would cost. That is an argument made with a
+missing number.
+
+So: refit without `home_ownership` and measure the cost, the same way
+`credit_history_months` and `verification_status` were measured.
+
+**The bar, fixed before the run.** Baseline is 1,663 defaulters caught at 10% capacity
+on validation. Sampling noise on a count that size is about +/-41.
+
+| Cost of removal | Verdict |
+|---|---|
+| under 41 defaulters | Inside noise. **Drop it.** The feature is not paying for itself and the fairness amplification is being carried for free. |
+| 41 to 100 | Real but modest. A judgement call, and it should be made explicitly on fairness grounds rather than by default. Report both models. |
+| over 100 | Material. **Keep it**, but the amplification must then be justified in the README as a priced trade-off, and the flag ratio and FPR gap become monitored metrics rather than noted ones. |
+
+**A second thing this measures.** Removing `home_ownership` also removes the unstable
+reference-category problem disclosed in the README limitations (`ANY`, n=73). If the cost
+lands under 41, that limitation disappears rather than needing a caveat.
+
+**What would NOT change the verdict.** A change in ROC-AUC alone. The decision rule turns
+on defaulters caught at the operating point, and that is what the bands above are written
+against - the same basis as every other ablation in this project.
+
+Result to follow.
+
