@@ -1161,5 +1161,81 @@ A change in ROC-AUC alone. The decision rule turns on defaulters caught at the o
 point, and the bands above are written against that - the same basis as every other
 ablation in this project.
 
-Result to follow.
+**RESULT — 17/09/2026.**
+
+```
+model                                caught   recall   ROC-AUC
+baseline (all features)               1,663   26.29%    0.6962
+without purpose                       1,610   25.45%    0.6883
+
+cost of removing: +53 defaulters (+3.19% relative)
+sampling noise on ~1,663 is roughly +/-41
+```
+
+**+53. Outside noise - the feature is carrying real weight.** That lands in the middle
+band, where the pre-registered verdict is **drop it, unless the medical finding can be
+shown to be spurious**. So the condition was tested rather than waved through.
+
+### The condition: is `purpose` the mechanism, or just correlated with it?
+
+Refitting without `purpose` and re-auditing the same groups:
+
+```
+group                 base    flagged with   flagged without   FPR with   FPR without
+small_business       6.56%          38.8%              7.1%     37.45%         6.28%
+medical              5.05%          25.3%              6.9%     24.28%         6.23%
+moving               5.50%          32.2%             10.9%     30.71%        10.33%
+credit_card          2.62%           2.6%              8.0%      2.34%         7.61%
+
+amplification         6.06x  ->  2.18x
+FPR gap              35.1pp  ->  4.7pp
+medical FPR         24.28%   ->  6.23%      (-18.1pp)
+```
+
+**Not spurious.** `purpose` is the mechanism, not a correlate of it. Removing the feature
+removes the disparity: medical borrowers who would have repaid go from being reviewed at
+24.28% to 6.23%, and small_business from 37.45% to 6.28%. No other feature steps in to
+reproduce the effect.
+
+**Verdict as pre-registered: drop it.** The price is 53 defaulters, it is real, and the
+asymmetry clause written before the run says pay it.
+
+### The model this actually implies
+
+If `home_ownership` (stage 15, +18) and `purpose` (+53) both go, the arithmetic is not
+additive:
+
+```
+model                          caught    cost     Gini   purpose amp   tenure amp
+as built (60 features)          1,663      +0   0.3923         6.06x        1.99x
+without home_ownership          1,645     -18   0.3878         5.39x        1.19x
+without purpose                 1,610     -53   0.3767         1.66x        2.01x
+without BOTH                    1,616     -47   0.3725         1.70x        1.18x
+
+FPR gaps, as built:     purpose 35.1pp   tenure 9.8pp
+FPR gaps, without both: purpose  5.4pp   tenure 5.3pp
+```
+
+**Dropping both costs less than dropping `purpose` alone** (-47 against -53). The two were
+partly carrying the same signal, so with both gone the remaining features take up more of
+the slack than either did individually. Worth recording because the intuition says
+otherwise, and because it means the fairness correction is cheaper than pricing the
+features one at a time suggests.
+
+**The trade, stated once and plainly: 47 defaulters - 2.8% of those caught - buys the
+near-elimination of both disparities.** Purpose amplification 6.06x to 1.70x, tenure
+1.99x to 1.18x, FPR gaps from 35.1pp and 9.8pp down to 5.4pp and 5.3pp.
+
+### Still not shipped, and still for the same reason
+
+The test pile was opened at stage 13. Refitting now and re-scoring would be a second look
+informed by the first, and would spend the one honest out-of-sample estimate this project
+has. The 60-feature model is reported as built; the 58-feature fairness-corrected variant
+is measured, documented, and named as the model a rebuild should start from.
+
+That is now **two** features whose removal was established only after the test pile was
+spent. The sequencing error identified at stage 15 was not a one-off - it was structural.
+Fairness analysis sat at the end of the pipeline when it belonged next to feature
+selection, and running it in the right order would have produced a better model at a cost
+of 47 defaulters, known in advance, with a clean test estimate to report against it.
 

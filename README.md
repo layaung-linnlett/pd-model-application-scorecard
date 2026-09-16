@@ -413,10 +413,37 @@ most likely to be a protected-characteristic proxy, and it is not one I would ha
 looking for. **`small_business`**: genuinely riskier, but nothing in the outcome data
 justifies a 15× flagging ratio.
 
-`purpose` is not ablated here. Doing it properly means pre-registering a bar first, as
-every other feature decision in this project did, and that is the next stage rather than
-an afterthought. The honest position today is that the model's second-largest coefficient
-is amplifying a disparity six-fold and the price of removing it is unmeasured.
+**Measured, against a bar fixed beforehand** (commit `3bf37e6`). Removing `purpose`
+costs **+53 defaulters** — outside the ±41 noise band, so unlike `home_ownership` this
+feature is genuinely carrying weight. The pre-registered middle band said drop it anyway
+*unless the medical finding proved spurious*, so that condition was tested:
+
+| | FPR with `purpose` | FPR without | change |
+|---|---:|---:|---:|
+| small_business | 37.45% | 6.28% | **−31.2pp** |
+| medical | 24.28% | 6.23% | **−18.1pp** |
+| amplification | 6.06× | 2.18× | |
+
+**Not spurious.** `purpose` is the mechanism, not a correlate — no other feature steps in
+to reproduce the effect when it is removed.
+
+**The model this implies.** Dropping both flagged features together is *cheaper* than
+dropping `purpose` alone, because the two partly carry the same signal:
+
+| Model | caught | cost | Gini | purpose amp | tenure amp |
+|---|---:|---:|---:|---:|---:|
+| as built (60 features) | 1,663 | — | 0.3923 | 6.06× | 1.99× |
+| without `home_ownership` | 1,645 | −18 | 0.3878 | 5.39× | 1.19× |
+| without `purpose` | 1,610 | −53 | 0.3767 | 1.66× | 2.01× |
+| **without both (58 features)** | **1,616** | **−47** | **0.3725** | **1.70×** | **1.18×** |
+
+**47 defaulters — 2.8% of those caught — buys the near-elimination of both disparities.**
+FPR gaps fall from 35.1pp and 9.8pp to 5.4pp and 5.3pp.
+
+That is the trade, priced. I would pay it. The 58-feature model is not the one reported
+here for the same reason as stage 15: the test pile was opened before either measurement
+existed, and re-scoring would spend the one honest estimate this project has. It is
+documented as the model a rebuild should start from.
 
 **Age is not fully removed.** Three age-proxy columns were dropped, but the remaining
 account-count features still correlate with age at roughly 0.26–0.31. Dropping one of a
@@ -425,11 +452,15 @@ and even then the residual is disclosed rather than claimed away.
 
 ## Limitations
 
-**Fairness was measured too late in the sequence.** The tenure-blind ablation showed
-`home_ownership` costs nothing, but it was run after the test set had been opened, so the
-better model is documented rather than shipped. Fairness analysis belongs before model
-selection closes, not in the write-up afterwards. This is a process limitation rather than
-a technical one, and it is the one I would fix first.
+**Fairness was measured too late in the sequence — and this is the project's real
+finding.** Two features, `home_ownership` and `purpose`, turned out to drive amplified
+disparities that a 58-feature model eliminates for 47 defaulters. Both measurements came
+*after* the test pile had been opened, so the better model is documented rather than
+shipped. That is not one oversight: fairness analysis sat at the end of the pipeline when
+it belonged beside feature selection. Run in the right order it would have produced a
+better, fairer model at a price known in advance, with a clean out-of-sample estimate to
+report against it. It is the first thing I would change about how this project was run,
+ahead of any modelling choice in it.
 
 **Random split, not out-of-time.** The most important *technical* one. The split is stratified
 random across a cohort that I have *demonstrated* contains a structural break — twelve
