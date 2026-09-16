@@ -1103,3 +1103,63 @@ this log exists to prevent. Next stage.
 The honest position today: the second-largest coefficient in the model amplifies a
 disparity six-fold, and the price of removing it is unmeasured.
 
+---
+
+## Stage 17 — pre-registering the bar for a purpose-blind model. 17/09/2026
+
+Stage 16b found `purpose` amplifies 6.06x with a 35.1pp FPR gap - three times worse than
+`home_ownership` on both. It is the second-largest coefficient in the model
+(`purpose_credit_card`, -0.787). The README states that position with the price unmeasured.
+This measures it.
+
+**Baseline is 1,663 defaulters caught at 10% capacity on validation. Sampling noise on a
+count that size is about +/-41.**
+
+| Cost of removal | Verdict |
+|---|---|
+| under 41 | Inside noise. **Drop it.** A six-fold amplification is being carried for nothing. |
+| 41 to 150 | Real cost. **Still drop it, unless the medical finding can be shown to be spurious.** See the asymmetry clause below - this band is deliberately wider than the one used for `home_ownership`, and the reason is stated before the number is known. |
+| over 150 | Material. **Keep**, and then the amplification, the FPR gap and the `medical` row specifically become monitored, disclosed items - not footnotes. Regrouping (below) becomes the priority rather than an option. |
+
+### The asymmetry clause — the part that is not about the number
+
+`home_ownership` was judged on cost alone because the fairness concern there was indirect:
+tenure correlates with wealth and age, but it is a financial fact about the borrower.
+
+`purpose` is different. `medical` borrowers who would have repaid are reviewed at 24.28%
+against 2.34% for credit-card refinancers. Medical borrowing correlates with health status
+and disability. Disability is a protected characteristic under the Equality Act 2010, and
+indirect discrimination does not require intent - a neutral criterion that puts a protected
+group at a disadvantage is unlawful unless it is a proportionate means of achieving a
+legitimate aim.
+
+**So predictiveness is not automatically a defence here.** If `purpose` earns its place
+partly BECAUSE it proxies health status, then the fact that it works is the problem rather
+than the justification. A feature can be both genuinely predictive and unlawful to use.
+That is why the middle band says drop rather than deliberate, and it is written down now,
+before the number is known, precisely so it cannot be softened afterwards.
+
+This is a pre-registration of a legal-risk position, not a statistical one. I am not a
+lawyer, and in a real lender this is the point at which the question leaves the modelling
+team and goes to compliance.
+
+### Regrouping — the answer a real scorecard would give
+
+Dropping a feature entirely is the blunt option. A production scorecard using weight-of-
+evidence binning would more likely **regroup** the categories - collapsing sparse, high-
+amplification levels into a broader bucket so the model keeps the signal without the
+extreme flag ratios. `small_business` (n=1,586) and `medical` (n=1,861) are exactly the
+thin, extreme categories WOE binning exists to tame.
+
+That is the likely real-world answer and it is **out of scope here**, because WOE binning
+is already listed as a project limitation. Recorded so the full-drop result is not read as
+the only option available.
+
+### What would NOT change the verdict
+
+A change in ROC-AUC alone. The decision rule turns on defaulters caught at the operating
+point, and the bands above are written against that - the same basis as every other
+ablation in this project.
+
+Result to follow.
+
